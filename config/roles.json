@@ -1,0 +1,7 @@
+{
+  "test-runner": "テスト担当",
+  "code-reviewer": "レビュー担当",
+  "coder": "コーディング担当",
+  "researcher": "調査担当",
+  "code-explainer": "解説担当"
+}

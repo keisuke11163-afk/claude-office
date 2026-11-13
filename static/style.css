@@ -1,0 +1,7 @@
+/* 見た目は最小限 */
+body { font-family: sans-serif; margin: 16px; }
+table { border-collapse: collapse; }
+th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
+.connected { color: green; }
+.reconnecting { color: #c60; }
+#history-list { font-family: monospace; }

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Claudeのオフィス</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<h1>Claudeのオフィス</h1>
+<p>接続状態: <span id="connection-status" class="reconnecting">接続待ち</span></p>
+
+<h2>入室中（<span id="agent-count">0</span>人）</h2>
+<table>
+  <thead>
+    <tr><th>役割名</th><th>agent_type</th><th>モデル</th><th>入室時刻</th></tr>
+  </thead>
+  <tbody id="agent-table-body"></tbody>
+</table>
+
+<h2>イベント履歴（新しい順・最大50件）</h2>
+<ul id="history-list"></ul>
+
+<!-- 画面の動き（CSP のため HTML に直接書かず、別ファイルにしている） -->
+<script src="/app.js"></script>
+</body>
+</html>
