@@ -1,7 +1,125 @@
-/* 見た目は最小限 */
-body { font-family: sans-serif; margin: 16px; }
-table { border-collapse: collapse; }
-th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
-.connected { color: green; }
-.reconnecting { color: #c60; }
-#history-list { font-family: monospace; }
+/* =========================================================
+   仮の見た目（最低限）。docs/ui_contract.md に従って全部書き換えてよい
+   ========================================================= */
+
+/* ===== 全体 ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  line-height: 1.5;
+  background: #f6f4ef;
+  color: #222;
+}
+
+/* ===== 上部：タイトルと接続状態 ===== */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.page-header h1 { margin: 0; font-size: 1.4rem; }
+#connection-status {
+  margin: 0;
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+#connection-status[data-connection="connecting"] { color: #666; }
+#connection-status[data-connection="open"] { color: #1b6e3a; }
+#connection-status[data-connection="reconnecting"] { color: #b45f06; }
+#connection-status[data-connection="closed"] { color: #b00020; }
+body[data-mode="mock"] #connection-status { color: #5b3fa0; }
+
+/* ===== デスク（横並び・折り返し） ===== */
+.office {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+.desk {
+  flex: 1 1 220px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+.desk-label { margin: 0 0 6px; font-size: 1rem; }
+.desk-seats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 120px;
+}
+
+/* ===== 席・キャラクター・名札 ===== */
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 112px;
+}
+.cat { width: 64px; height: 64px; }
+.cat-svg { display: block; width: 100%; height: 100%; }
+.nameplate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  font-size: 0.75rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.nameplate [data-field="role_label"] { font-weight: bold; }
+.nameplate [data-field="agent_type"] { color: #666; }
+.nameplate [data-field="model"] { padding: 0 6px; border-radius: 4px; background: #eee; }
+.seat[data-model="haiku"] [data-field="model"] { background: #cde8e2; }
+.seat[data-model="sonnet"] [data-field="model"] { background: #d6e0f7; }
+.seat[data-model="opus"] [data-field="model"] { background: #f2d6d6; }
+.nameplate [data-field="elapsed"] { font-variant-numeric: tabular-nums; }
+
+/* ===== 席の状態（アニメは 0.6 秒以下） ===== */
+.seat[data-state="absent"] { opacity: 0.4; }
+.seat[data-state="entering"] { animation: seat-enter 0.5s ease-out; }
+.seat[data-state="leaving"] { animation: seat-leave 0.5s ease-in forwards; }
+@keyframes seat-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes seat-leave { from { opacity: 1; } to { opacity: 0; } }
+
+/* 動きを減らす設定のときはアニメなし */
+@media (prefers-reduced-motion: reduce) {
+  .seat { animation: none !important; }
+  .seat[data-state="leaving"] { opacity: 0.3; }
+}
+
+/* ===== 入退室ログ ===== */
+.activity h2 { margin: 0 0 6px; font-size: 1.1rem; }
+#activity-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  border-bottom: 1px solid #e4e1da;
+}
+.log-entry [data-field="time"] {
+  flex: none;
+  color: #666;
+  font-family: ui-monospace, monospace;
+}
+.log-entry[data-kind="enter"] { color: #1b6e3a; }
+.log-entry[data-kind="leave"] { color: #555; }
+.log-entry[data-kind="update"] { color: #2a4fa0; }
+.log-entry[data-kind="system"] { color: #8a5a00; font-style: italic; }
+.log-entry[data-reason="timeout"] [data-field="message"] { color: #b00020; }

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Office 動作テスト</title>
+  <link rel="stylesheet" href="../../static/style.css">
+  <!-- テスト中は本物の /stream に接続しない（file:// では失敗し、「切断」の記録がログに混ざるため）。
+       app.js より前に置いて、EventSource の代わりに何もしない偽物を使う -->
+  <script>
+    window.EventSource = function FakeEventSource() {
+      this.readyState = 0;
+      this.addEventListener = function () {};
+    };
+    window.EventSource.CLOSED = 2;
+  </script>
+  <script src="../../static/app.js" defer></script>
+  <script src="app_test.js" defer></script>
+</head>
+<body data-mode="live">
+  <!-- index.html と同じ構造（テスト用にコピー） -->
+  <header class="page-header">
+    <h1>Claude Office 動作テスト</h1>
+    <p id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</p>
+  </header>
+
+  <main>
+    <section class="office" aria-label="デスク">
+      <section class="desk" data-role="researcher" data-count="0">
+        <h2 class="desk-label">調査担当</h2>
+        <div class="desk-seats"></div>
+      </section>
+      <section class="desk" data-role="coder" data-count="0">
+        <h2 class="desk-label">コーディング担当</h2>
+        <div class="desk-seats"></div>
+      </section>
+      <section class="desk" data-role="test-runner" data-count="0">
+        <h2 class="desk-label">テスト担当</h2>
+        <div class="desk-seats"></div>
+      </section>
+      <section class="desk" data-role="code-reviewer" data-count="0">
+        <h2 class="desk-label">レビュー担当</h2>
+        <div class="desk-seats"></div>
+      </section>
+      <section class="desk" data-role="code-explainer" data-count="0">
+        <h2 class="desk-label">解説担当</h2>
+        <div class="desk-seats"></div>
+      </section>
+      <section class="desk" data-role="other" data-count="0">
+        <h2 class="desk-label">その他</h2>
+        <div class="desk-seats"></div>
+      </section>
+    </section>
+
+    <section class="activity" aria-labelledby="activity-title">
+      <h2 id="activity-title">入退室ログ</h2>
+      <ol id="activity-log"></ol>
+    </section>
+  </main>
+
+  <!-- キャラクターの template（index.html と同じ中身） -->
+  <template id="cat-researcher">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#77b8b0"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#77b8b0"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#77b8b0"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-coder">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#8ca8e8"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#8ca8e8"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#8ca8e8"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-test-runner">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#e8b66b"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#e8b66b"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#e8b66b"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-code-reviewer">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#dc9292"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#dc9292"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#dc9292"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-code-explainer">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b5a0e3"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b5a0e3"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b5a0e3"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-generic">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b3b9b7"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b3b9b7"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b3b9b7"/>
+      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
+      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    </svg>
+  </template>
+  <template id="cat-absent">
+    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
+      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
+      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
+      <circle class="cat-head" cx="32" cy="36" r="20" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
+    </svg>
+  </template>
+
+  <!-- テストの結果（app_test.js が書く。Python 側はここを読む） -->
+  <pre id="test-result">未実行</pre>
+</body>
+</html>
