@@ -51,65 +51,343 @@
   </main>
 
   <!-- ===== キャラクター（ChatGPT が差し替える範囲 ここから） ===== -->
+  <!-- 01 / Researcher : 虫眼鏡 -->
   <template id="cat-researcher">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#77b8b0"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#77b8b0"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#77b8b0"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#438d8a"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#459b95" stroke="#294e60" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#8ee3d5" stroke="#294e60"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#e9a8b5"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#8ee3d5"
+        stroke="#294e60" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#f6afbf"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#f6afbf"/>
+      <g class="cat-eye" fill="#1d3447">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#a25b79"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#294e60"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#fb779e"/>
+      <path d="M12 38 L4 36 M12 43 L4 44
+               M52 38 L60 36 M52 43 L60 44"
+        fill="none" stroke="#294e60"
+        stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="24" cy="56" rx="6" ry="4"
+        fill="#8ee3d5" stroke="#294e60" stroke-width="1.3"/>
+      <ellipse cx="41" cy="56" rx="6" ry="4"
+        fill="#8ee3d5" stroke="#294e60" stroke-width="1.3"/>
+      <!-- 虫眼鏡 -->
+      <circle cx="50" cy="47" r="9"
+        fill="#b5f5ff" fill-opacity=".35"
+        stroke="#f8f8ff" stroke-width="3"/>
+      <path d="M56 54 L63 62" fill="none"
+        stroke="#e4b985" stroke-width="4"
+        stroke-linecap="round"/>
+      <path d="M47 44 L51 41" fill="none"
+        stroke="#fff" stroke-width="1.5"
+        stroke-linecap="round"/>
     </svg>
   </template>
+
+  <!-- 02 / Coder : ヘッドホン＆PC -->
   <template id="cat-coder">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#8ca8e8"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#8ca8e8"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#8ca8e8"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M48 48 Q63 51 56 34"
+        fill="none" stroke="#536ca5"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#6b8ac9" stroke="#303e66" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#a4c4ff" stroke="#303e66"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#eeadbe"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#a4c4ff"
+        stroke="#303e66" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#e9acc7"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#e9acc7"/>
+      <g class="cat-eye" fill="#1d2945">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#9d658c"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#303e66"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#ff789e"/>
+      <!-- ヘッドホン -->
+      <path d="M11 33 L11 26 Q11 5 32 5
+               Q53 5 53 26 L53 33"
+        fill="none" stroke="#2a355b"
+        stroke-width="5" stroke-linecap="round"/>
+      <rect x="7" y="28" width="8" height="16"
+        rx="3" fill="#6df2f3"
+        stroke="#29365b" stroke-width="2"/>
+      <rect x="49" y="28" width="8" height="16"
+        rx="3" fill="#6df2f3"
+        stroke="#29365b" stroke-width="2"/>
+      <!-- ノートPC -->
+      <rect x="20" y="45" width="29" height="16"
+        rx="2" fill="#243357"
+        stroke="#79e7ff" stroke-width="1.4"/>
+      <path d="M16 61 L53 61" fill="none"
+        stroke="#d4e5ff" stroke-width="4"
+        stroke-linecap="round"/>
+      <path d="M29 51 L26 54 L29 57
+               M40 51 L43 54 L40 57"
+        fill="none" stroke="#75eaf1"
+        stroke-width="1.7" stroke-linecap="round"/>
     </svg>
   </template>
+
+  <!-- 03 / Test Runner : チェックリスト -->
   <template id="cat-test-runner">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#e8b66b"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#e8b66b"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#e8b66b"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#ae8240"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#deb566" stroke="#765d46" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#ffdb91" stroke="#765d46"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#eaaab0"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#ffdb91"
+        stroke="#765d46" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#f4a9ae"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#f4a9ae"/>
+      <g class="cat-eye" fill="#44392f">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#b8737c"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#765d46"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#ef638c"/>
+      <!-- チェックリスト -->
+      <rect x="41" y="42" width="20" height="22"
+        rx="2" fill="#f7faff"
+        stroke="#51627f" stroke-width="1.7"/>
+      <rect x="47" y="39" width="8" height="5"
+        rx="2" fill="#7288a6"/>
+      <path d="M45 48 L47 50 L50 46
+               M45 55 L47 57 L50 53"
+        fill="none" stroke="#368d68"
+        stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round"/>
+      <path d="M53 49 L58 49 M53 56 L58 56"
+        fill="none" stroke="#788ca2" stroke-width="1.5"/>
+      <ellipse cx="23" cy="57" rx="6" ry="4"
+        fill="#ffdb91" stroke="#765d46" stroke-width="1.2"/>
     </svg>
   </template>
+
+  <!-- 04 / Reviewer : 丸メガネ＆赤ペン -->
   <template id="cat-code-reviewer">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#dc9292"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#dc9292"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#dc9292"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#ad6685"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#c57e9c" stroke="#69475e" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#f4a8c5" stroke="#69475e"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#d97f9a"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#f4a8c5"
+        stroke="#69475e" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#ffcadb"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#ffcadb"/>
+      <g class="cat-eye" fill="#3b2d47">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#9b5274"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#69475e"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#ee5a84"/>
+      <!-- 丸メガネ -->
+      <g fill="none" stroke="#3d3159" stroke-width="1.9">
+        <circle cx="24" cy="30" r="9"/>
+        <circle cx="40" cy="30" r="9"/>
+        <path d="M33 28 Q32 26 31 28
+                 M15 29 L10 27 M49 29 L54 27"/>
+      </g>
+      <!-- 赤ペン -->
+      <path d="M47 59 L60 40" fill="none"
+        stroke="#f45b72" stroke-width="4"
+        stroke-linecap="round"/>
+      <path d="M47 59 L44 63 L49 61 Z"
+        fill="#d8e2ed"/>
+      <path d="M54 44 L59 47" fill="none"
+        stroke="#fff1f4" stroke-width="1.5"/>
+      <ellipse cx="23" cy="57" rx="6" ry="4"
+        fill="#f4a8c5" stroke="#69475e" stroke-width="1.2"/>
     </svg>
   </template>
+
+  <!-- 05 / Explainer : 指し棒 -->
   <template id="cat-code-explainer">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b5a0e3"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b5a0e3"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b5a0e3"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#8874b5"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#a28dcd" stroke="#554578" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#d1b9ff" stroke="#554578"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#f0b7c4"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#d1b9ff"
+        stroke="#554578" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#edb0d6"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#edb0d6"/>
+      <g class="cat-eye" fill="#3c3057">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#9d698d"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#554578"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#f26fa2"/>
+      <ellipse cx="23" cy="57" rx="6" ry="4"
+        fill="#d1b9ff" stroke="#554578" stroke-width="1.2"/>
+      <!-- 指し棒 -->
+      <path d="M46 59 L58 16" fill="none"
+        stroke="#eac68f" stroke-width="3.5"
+        stroke-linecap="round"/>
+      <circle cx="58" cy="15" r="3.5"
+        fill="#fff7b6" stroke="#896caa" stroke-width="1"/>
+      <!-- 閃き -->
+      <path d="M55 5 L55 9 M47 11 L50 13
+               M62 8 L60 11"
+        fill="none" stroke="#fff4ae"
+        stroke-width="1.6" stroke-linecap="round"/>
     </svg>
   </template>
+
+  <!-- 06 / Generic : 無地の猫 -->
   <template id="cat-generic">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b3b9b7"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b3b9b7"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b3b9b7"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#7d929a"
+        stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="#9bafb9" stroke="#485968" stroke-width="1.5"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="#c7d7de" stroke="#485968"
+        stroke-width="2" stroke-linejoin="round"/>
+      <path d="M17 15 L19 25 L26 21 Z
+               M47 15 L45 25 L38 21 Z"
+        fill="#e8aebc"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="#c7d7de"
+        stroke="#485968" stroke-width="2"/>
+      <ellipse cx="24" cy="42" rx="5" ry="3"
+        fill="#f0b6c5"/>
+      <ellipse cx="42" cy="42" rx="5" ry="3"
+        fill="#f0b6c5"/>
+      <g class="cat-eye" fill="#2d3f4a">
+        <ellipse cx="29" cy="30" rx="1.8" ry="2.5"/>
+        <ellipse cx="35" cy="30" rx="1.8" ry="2.5"/>
+      </g>
+      <path d="M30 39 L34 39 L32 41 Z" fill="#9d6e84"/>
+      <path d="M32 41 Q28 44 26 41 M32 41 Q36 44 38 41"
+        fill="none" stroke="#485968"
+        stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M31 43 Q32 50 35 43 Z" fill="#ee7b9f"/>
+      <path d="M12 38 L4 36 M12 43 L4 44
+               M52 38 L60 36 M52 43 L60 44"
+        fill="none" stroke="#485968"
+        stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse cx="23" cy="56" rx="6" ry="4"
+        fill="#c7d7de" stroke="#485968" stroke-width="1.2"/>
+      <ellipse cx="41" cy="56" rx="6" ry="4"
+        fill="#c7d7de" stroke="#485968" stroke-width="1.2"/>
     </svg>
   </template>
+
+  <!-- 07 / Absent : 点線の輪郭 -->
   <template id="cat-absent">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
+    <svg viewBox="0 0 64 64" class="cat-svg"
+         aria-hidden="true" focusable="false">
+      <path class="cat-tail"
+        d="M49 48 Q62 54 56 37"
+        fill="none" stroke="#7b89b4"
+        stroke-width="2" stroke-dasharray="3 3"
+        stroke-linecap="round"/>
+      <ellipse cx="32" cy="49" rx="17" ry="13"
+        fill="none" stroke="#7b89b4"
+        stroke-width="1.8" stroke-dasharray="4 3"/>
+      <path class="cat-ear"
+        d="M14 29 L14 7 Q15 4 20 10 L29 19
+           L35 19 L46 9 Q51 4 51 10 L51 29"
+        fill="none" stroke="#7b89b4"
+        stroke-width="1.8" stroke-dasharray="4 3"
+        stroke-linejoin="round"/>
+      <ellipse class="cat-head" cx="32" cy="31"
+        rx="23" ry="21" fill="none"
+        stroke="#7b89b4" stroke-width="1.8"
+        stroke-dasharray="4 3"/>
     </svg>
   </template>
   <!-- ===== キャラクター（ChatGPT が差し替える範囲 ここまで） ===== -->

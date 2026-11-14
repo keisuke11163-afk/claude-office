@@ -1,125 +1,719 @@
-/* =========================================================
-   仮の見た目（最低限）。docs/ui_contract.md に従って全部書き換えてよい
-   ========================================================= */
 
-/* ===== 全体 ===== */
-* { box-sizing: border-box; }
+/* Claude Office — Neon Night Shift */
+/* UI Contract v1 / CSS only */
+
+:root {
+  color-scheme: dark;
+  --bg: #090b1b;
+  --panel: #151a36;
+  --panel-light: #202849;
+  --text: #f5f7ff;
+  --muted: #b9c4de;
+  --cyan: #56f1f1;
+  --purple: #c39cff;
+  --lime: #c4f47d;
+  --pink: #ff97cb;
+  --gold: #ffd28b;
+  --border: #404b77;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+}
+
 body {
   margin: 0;
-  padding: 16px;
-  font-family: system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif;
-  line-height: 1.5;
-  background: #f6f4ef;
-  color: #222;
+  padding: 24px clamp(12px, 4vw, 56px) 48px;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 12% 3%, #29235b 0, transparent 38%),
+    radial-gradient(ellipse at 95% 26%, #142e48 0, transparent 40%),
+    var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui, -apple-system, "Hiragino Sans",
+    "Yu Gothic UI", "Meiryo", sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ===== 上部：タイトルと接続状態 ===== */
+.page-header,
+main {
+  max-width: 1450px;
+  margin-inline: auto;
+}
+
 .page-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 22px;
 }
-.page-header h1 { margin: 0; font-size: 1.4rem; }
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3.3vw, 2.5rem);
+  font-weight: 850;
+  letter-spacing: -.045em;
+  color: #fff;
+  text-shadow: 0 0 30px #8f83fa75;
+}
+
+.page-header h1::before {
+  content: "✦";
+  display: inline-block;
+  margin-right: 12px;
+  color: var(--cyan);
+  text-shadow: 0 0 16px #56f1f1;
+}
+
 #connection-status {
   margin: 0;
-  padding: 2px 10px;
-  border: 1px solid currentColor;
+  padding: 9px 15px;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  font-size: 0.9rem;
+  background: #171d38;
+  color: var(--text);
+  font-size: .85rem;
+  font-weight: 700;
 }
-#connection-status[data-connection="connecting"] { color: #666; }
-#connection-status[data-connection="open"] { color: #1b6e3a; }
-#connection-status[data-connection="reconnecting"] { color: #b45f06; }
-#connection-status[data-connection="closed"] { color: #b00020; }
-body[data-mode="mock"] #connection-status { color: #5b3fa0; }
 
-/* ===== デスク（横並び・折り返し） ===== */
+#connection-status::before {
+  content: "●";
+  margin-right: 9px;
+}
+
+#connection-status[data-connection="open"] {
+  border-color: #548d81;
+  color: #b6ffda;
+}
+
+#connection-status[data-connection="connecting"],
+#connection-status[data-connection="reconnecting"] {
+  border-color: #a48a5e;
+  color: #ffe0a2;
+}
+
+#connection-status[data-connection="closed"] {
+  border-color: #a96080;
+  color: #ffc4d6;
+}
+
+body[data-mode="mock"] #connection-status::after {
+  content: " · DEMO";
+  color: #e4c7ff;
+}
+
+/* ===== Office room ===== */
+
 .office {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 16px 0;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  padding: 106px 28px 42px;
+  overflow: hidden;
+  border: 1px solid #505c91;
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      #54c5fa2a 50%,
+      transparent 100%) center 88px / 94% 2px no-repeat,
+    repeating-linear-gradient(
+      90deg, transparent 0 59px,
+      #7e8be014 60px 61px),
+    repeating-linear-gradient(
+      0deg, transparent 0 59px,
+      #7e8be014 60px 61px),
+    linear-gradient(
+      to bottom,
+      #181c41 0,
+      #101633 94px,
+      #171d39 95px,
+      #11152b 100%);
+  box-shadow:
+    inset 0 0 70px #0007,
+    0 28px 80px #0006;
 }
-.desk {
-  flex: 1 1 220px;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
+
+/* Wall, ceiling neon and window */
+.office::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 19px;
+  left: 28px;
+  width: min(35%, 260px);
+  height: 52px;
+  border: 2px solid #55ddef;
   border-radius: 8px;
-  background: #fff;
+  background:
+    linear-gradient(90deg,
+      transparent 49%,
+      #55ddef 49% 51%,
+      transparent 51%),
+    linear-gradient(0deg,
+      transparent 49%,
+      #55ddef 49% 51%,
+      transparent 51%),
+    linear-gradient(140deg, #16274c, #32306b 85%);
+  box-shadow:
+    0 0 14px #41f0ff65,
+    inset 0 0 22px #41f0ff22;
 }
-.desk-label { margin: 0 0 6px; font-size: 1rem; }
+
+/* Entrance door and its neon strip */
+.office::after {
+  content: "↳  ENTRY";
+  position: absolute;
+  box-sizing: border-box;
+  top: 12px;
+  right: 27px;
+  width: 112px;
+  height: 76px;
+  padding-top: 22px;
+  border: 2px solid #5decf7;
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  background:
+    linear-gradient(90deg, #75f4ff20, transparent 35%),
+    #101b37;
+  box-shadow:
+    0 0 19px #38e7fa90,
+    inset 0 0 20px #38e7fa24;
+  color: #c8fbff;
+  font-size: .73rem;
+  font-weight: 850;
+  letter-spacing: .13em;
+  text-align: center;
+}
+
+/* ===== Role desks ===== */
+
+.desk {
+  --accent: var(--purple);
+  position: relative;
+  min-width: 0;
+  min-height: 260px;
+  padding: 17px 14px 19px;
+  border: 1px solid var(--accent);
+  border-radius: 17px;
+  background:
+    linear-gradient(145deg, #22294aee, #141a32f5 72%);
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--accent) 17%, transparent),
+    inset 0 1px 0 #ffffff18,
+    0 14px 26px #0005;
+}
+
+.desk::before {
+  content: "";
+  position: absolute;
+  inset: -1px 18px auto;
+  height: 3px;
+  border-radius: 0 0 5px 5px;
+  background: var(--accent);
+  box-shadow: 0 0 13px var(--accent);
+}
+
+.desk::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 23px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 9px var(--accent);
+}
+
+.desk[data-role="researcher"] {
+  --accent: #64e6db;
+}
+
+.desk[data-role="coder"] {
+  --accent: #84baff;
+}
+
+.desk[data-role="test-runner"] {
+  --accent: #c4f47d;
+}
+
+.desk[data-role="code-reviewer"] {
+  --accent: #ff91c0;
+}
+
+.desk[data-role="code-explainer"] {
+  --accent: #c39cff;
+}
+
+.desk[data-role="other"] {
+  --accent: #ffd28b;
+}
+
+.desk[data-count="0"] {
+  border-style: dashed;
+  box-shadow: inset 0 1px 0 #ffffff0a;
+}
+
+.desk-label {
+  margin: 0 0 17px;
+  padding-right: 18px;
+  color: #fff;
+  font-size: .97rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.desk[data-count="0"] .desk-label {
+  color: #c1c9df;
+}
+
+.desk-label::before {
+  content: "▣";
+  margin-right: 9px;
+  color: var(--accent);
+}
+
 .desk-seats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  min-height: 120px;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 183px;
 }
 
-/* ===== 席・キャラクター・名札 ===== */
+/* ===== Seats ===== */
+
 .seat {
+  position: relative;
   display: flex;
+  flex: 1 1 120px;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  width: 112px;
+  min-width: 0;
+  max-width: 190px;
+  gap: 10px;
 }
-.cat { width: 64px; height: 64px; }
-.cat-svg { display: block; width: 100%; height: 100%; }
-.nameplate {
+
+.cat {
+  position: relative;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
   width: 100%;
-  font-size: 0.75rem;
-  text-align: center;
+  height: 100px;
+  padding: 5px 0;
+}
+
+/* Desktop surface behind the cat */
+.cat::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: min(100%, 140px);
+  height: 19px;
+  border: 1px solid #596488;
+  border-bottom: 4px solid #28304f;
+  border-radius: 8px;
+  background: linear-gradient(#505a7c, #2f395b);
+  box-shadow: 0 6px 14px #0007;
+}
+
+.cat-svg {
+  position: relative;
+  width: 94px;
+  height: 94px;
+  overflow: visible;
+  filter: drop-shadow(0 5px 4px #0007);
+}
+
+/* ===== Cat motions ===== */
+
+.seat[data-state="present"] .cat-svg {
+  animation: cat-bob 3.8s ease-in-out infinite;
+}
+
+.seat[data-state="present"] .cat-tail {
+  transform-box: fill-box;
+  transform-origin: 20% 80%;
+  animation: cat-tail-wiggle 2.8s ease-in-out infinite;
+}
+
+.seat[data-state="present"] .cat-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cat-blink 6.2s infinite;
+}
+
+.seat[data-state="entering"] {
+  animation: seat-enter .48s cubic-bezier(.2, 1.3, .38, 1) both;
+}
+
+.seat[data-state="leaving"] {
+  animation: seat-leave .46s ease-in forwards;
+}
+
+.seat[data-state="absent"] {
+  opacity: .72;
+}
+
+.seat[data-state="absent"] .cat::before {
+  opacity: .45;
+}
+
+.seat[data-state="absent"] .cat-svg {
+  filter: none;
+}
+
+.seat[data-state="absent"] .cat::after {
+  content: "不在";
+  position: absolute;
+  bottom: -18px;
+  color: #d2dbf3;
+  font-size: .8rem;
+  font-weight: 750;
+}
+
+@keyframes seat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(.8);
+  }
+  75% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes seat-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-24px) scale(.83);
+  }
+}
+
+@keyframes cat-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes cat-tail-wiggle {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(12deg); }
+}
+
+@keyframes cat-blink {
+  0%, 43%, 46%, 100% { transform: scaleY(1); }
+  44%, 45% { transform: scaleY(.12); }
+}
+
+/* ===== Nameplates ===== */
+
+.nameplate {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 5px 7px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #485475;
+  border-radius: 10px;
+  background: #0c1229;
+  color: #f5f7ff;
+  font-size: .7rem;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
-.nameplate [data-field="role_label"] { font-weight: bold; }
-.nameplate [data-field="agent_type"] { color: #666; }
-.nameplate [data-field="model"] { padding: 0 6px; border-radius: 4px; background: #eee; }
-.seat[data-model="haiku"] [data-field="model"] { background: #cde8e2; }
-.seat[data-model="sonnet"] [data-field="model"] { background: #d6e0f7; }
-.seat[data-model="opus"] [data-field="model"] { background: #f2d6d6; }
-.nameplate [data-field="elapsed"] { font-variant-numeric: tabular-nums; }
 
-/* ===== 席の状態（アニメは 0.6 秒以下） ===== */
-.seat[data-state="absent"] { opacity: 0.4; }
-.seat[data-state="entering"] { animation: seat-enter 0.5s ease-out; }
-.seat[data-state="leaving"] { animation: seat-leave 0.5s ease-in forwards; }
-@keyframes seat-enter { from { opacity: 0; } to { opacity: 1; } }
-@keyframes seat-leave { from { opacity: 1; } to { opacity: 0; } }
-
-/* 動きを減らす設定のときはアニメなし */
-@media (prefers-reduced-motion: reduce) {
-  .seat { animation: none !important; }
-  .seat[data-state="leaving"] { opacity: 0.3; }
+.nameplate [data-field="role_label"] {
+  grid-column: 1 / -1;
+  font-size: .81rem;
+  font-weight: 800;
+  color: #fff;
 }
 
-/* ===== 入退室ログ ===== */
-.activity h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.nameplate [data-field="agent_type"] {
+  grid-column: 1 / -1;
+  color: #bec9e8;
+  font-size: .68rem;
+}
+
+.nameplate [data-field="model"] {
+  justify-self: start;
+  grid-column: 1 / -1;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid #606d94;
+  border-radius: 5px;
+  background: #293554;
+  color: #fff;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.nameplate [data-field="model"]::before {
+  content: "MODEL  ";
+  font-size: .59rem;
+  letter-spacing: .05em;
+}
+
+.seat[data-model="haiku"] [data-field="model"] {
+  background: #143a3e;
+  border-color: #458b91;
+  color: #d3ffff;
+}
+
+.seat[data-model="sonnet"] [data-field="model"] {
+  background: #26335c;
+  border-color: #748bda;
+  color: #e3ebff;
+}
+
+.seat[data-model="opus"] [data-field="model"] {
+  background: #482343;
+  border-color: #a36b9c;
+  color: #ffe1f3;
+}
+
+.nameplate [data-field="started_at"] {
+  color: #d1d9f0;
+  font-size: .67rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nameplate [data-field="elapsed"] {
+  justify-self: end;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: #263350;
+  color: #d4fca5;
+  font-size: .69rem;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Activity logs ===== */
+
+.activity {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #465176;
+  border-radius: 18px;
+  background: linear-gradient(150deg, #1b2240, #11172e);
+  box-shadow: 0 14px 35px #0004;
+}
+
+.activity h2 {
+  margin: 0 0 15px;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.activity h2::before {
+  content: "≡";
+  margin-right: 10px;
+  color: var(--cyan);
+  font-size: 1.3rem;
+}
+
 #activity-log {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 335px;
   margin: 0;
   padding: 0;
-  list-style: none;
-  max-height: 320px;
   overflow-y: auto;
-  font-size: 0.9rem;
+  list-style: none;
+  scrollbar-color: #62729d #171c34;
 }
+
 .log-entry {
   display: flex;
-  gap: 8px;
-  padding: 2px 0;
-  border-bottom: 1px solid #e4e1da;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #343f60;
+  border-left: 3px solid #8696b9;
+  border-radius: 8px;
+  background: #0e152c;
+  color: #f2f5ff;
+  font-size: .82rem;
+  overflow-wrap: anywhere;
 }
+
+.log-entry::before {
+  flex: none;
+  content: "•";
+  width: 18px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.log-entry[data-kind="enter"] {
+  border-left-color: #9be8bd;
+}
+
+.log-entry[data-kind="enter"]::before {
+  content: "↳";
+  color: #9be8bd;
+}
+
+.log-entry[data-kind="leave"] {
+  border-left-color: #ffadc7;
+}
+
+.log-entry[data-kind="leave"]::before {
+  content: "↰";
+  color: #ffadc7;
+}
+
+.log-entry[data-kind="update"] {
+  border-left-color: #a8baff;
+}
+
+.log-entry[data-kind="update"]::before {
+  content: "↻";
+  color: #a8baff;
+}
+
+.log-entry[data-kind="system"] {
+  border-left-color: #f8d493;
+}
+
+.log-entry[data-kind="system"]::before {
+  content: "!";
+  color: #f8d493;
+}
+
+.log-entry[data-reason="timeout"] [data-field="message"] {
+  color: #ffd2de;
+}
+
 .log-entry [data-field="time"] {
   flex: none;
-  color: #666;
-  font-family: ui-monospace, monospace;
+  color: #c3cee8;
+  font-size: .72rem;
+  font-family: ui-monospace, "Consolas", monospace;
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
 }
-.log-entry[data-kind="enter"] { color: #1b6e3a; }
-.log-entry[data-kind="leave"] { color: #555; }
-.log-entry[data-kind="update"] { color: #2a4fa0; }
-.log-entry[data-kind="system"] { color: #8a5a00; font-style: italic; }
-.log-entry[data-reason="timeout"] [data-field="message"] { color: #b00020; }
+
+.log-entry [data-field="message"] {
+  min-width: 0;
+  flex: 1;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 980px) {
+  .office {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 104px 18px 24px;
+  }
+}
+
+@media (max-width: 580px) {
+  body {
+    padding: 15px 12px 30px;
+  }
+
+  .page-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+
+  #connection-status {
+    font-size: .76rem;
+    padding: 7px 10px;
+  }
+
+  .office {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 102px 13px 20px;
+    border-radius: 17px;
+  }
+
+  .office::before {
+    left: 15px;
+    width: 35%;
+  }
+
+  .office::after {
+    right: 15px;
+    width: 92px;
+    font-size: .65rem;
+  }
+
+  .desk {
+    min-height: 220px;
+  }
+
+  .desk-seats {
+    min-height: 150px;
+    gap: 12px;
+  }
+
+  .seat {
+    flex-basis: 115px;
+  }
+
+  .activity {
+    padding: 13px;
+  }
+
+  .log-entry {
+    gap: 7px;
+    padding: 10px 7px;
+    font-size: .75rem;
+  }
+
+  .log-entry [data-field="time"] {
+    font-size: .66rem;
+  }
+}
+
+/* ===== Accessibility ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .seat[data-state="leaving"] {
+    opacity: .15;
+  }
+
+  .seat[data-state="entering"] {
+    opacity: 1;
+  }
+}
