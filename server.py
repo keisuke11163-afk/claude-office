@@ -35,6 +35,16 @@ STATIC_FILES = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
+    # 工房の背景とタコの絵（画像を足すときは、ここに1枚ずつ登録する）
+    "/assets/workshop_background.png": ("assets/workshop_background.png", "image/png"),
+    "/assets/octopus/researcher.png": ("assets/octopus/researcher.png", "image/png"),
+    "/assets/octopus/coder.png": ("assets/octopus/coder.png", "image/png"),
+    "/assets/octopus/test-runner.png": ("assets/octopus/test-runner.png", "image/png"),
+    "/assets/octopus/code-reviewer.png": ("assets/octopus/code-reviewer.png", "image/png"),
+    "/assets/octopus/code-explainer.png": ("assets/octopus/code-explainer.png", "image/png"),
+    "/assets/octopus/general.png": ("assets/octopus/general.png", "image/png"),
+    "/assets/octopus/manager.png": ("assets/octopus/manager.png", "image/png"),
+    "/assets/octopus/absent.png": ("assets/octopus/absent.png", "image/png"),
 }
 
 # 画面に付けるセキュリティ設定（CSP）：自分自身(このサーバー)から読み込んだものだけ使える。

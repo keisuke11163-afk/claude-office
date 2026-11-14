@@ -29,6 +29,8 @@ Claude Code のフック ──POST /events──▶ server.py ──GET /stream
 | `/` | `static/index.html` | `text/html; charset=utf-8` |
 | `/app.js` | `static/app.js` | `text/javascript; charset=utf-8` |
 | `/style.css` | `static/style.css` | `text/css; charset=utf-8` |
+| `/assets/workshop_background.png` | `static/assets/workshop_background.png`（工房の背景） | `image/png` |
+| `/assets/octopus/<名前>.png` | `static/assets/octopus/` のタコの絵（researcher / coder / test-runner / code-reviewer / code-explainer / general / manager / absent） | `image/png` |
 | `/stream` | SSE（下の「4. /stream」） | `text/event-stream; charset=utf-8` |
 
 - **この表に無い URL は 404** です。画像やフォントなどのファイルを足すには、サーバーへの登録が必要です（「7. ファイルを足す方法」）

@@ -1,5 +1,6 @@
 """
 画面ファイル（HTML / CSS / JS / SVG）が docs/ui_contract.md と docs/api.md の決まりを守っているか検査する。
+（index.html に app.js が使う要素があるか、使っている URL が server.py に登録済みかも調べる）
 
 使い方:
     python tools/check_static.py <フォルダ> [--server server.py のパス]
@@ -21,16 +22,31 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SERVER_FILE = PROJECT_ROOT / "server.py"
 
-# index.html に必ず必要なキャラクターの template
-REQUIRED_TEMPLATE_IDS = (
-    "cat-researcher",
-    "cat-coder",
-    "cat-test-runner",
-    "cat-code-reviewer",
-    "cat-code-explainer",
-    "cat-generic",
-    "cat-absent",
+# index.html に必ず必要な要素の id（app.js が探す。docs/ui_contract.md と同じ）
+REQUIRED_ELEMENT_IDS = (
+    "connection-status",
+    "scene",
+    "scene-empty",
+    "worker-list",
+    "worker-detail",
+    "activity-log",
+    "side-crew",
+    "side-events",
+    "scene-population",
+    "crew-total",
+    "summary-present",
+    "summary-enter",
+    "summary-leave",
+    "mock-controls",
+    "mock-enter",
+    "mock-leave",
 )
+
+# index.html に必ず必要な作業場所（<div class="slot" data-role="…">）
+REQUIRED_SLOT_ROLES = ("researcher", "coder", "test-runner", "code-reviewer", "code-explainer", "other")
+
+# JS の文字列に書かれた、サーバーから読むファイルの URL（例 "/assets/octopus/coder.png"）
+JS_LOCAL_FILE_URL_PATTERN = re.compile(r"""["'`](/[A-Za-z0-9_\-./]+\.[A-Za-z0-9]+)["'`]""")
 
 # JS で使ってはいけない書き方（画面に HTML を文字列で入れる・文字列をコードとして動かす）
 FORBIDDEN_JS_PATTERNS = (
@@ -95,7 +111,8 @@ class HtmlChecker(HTMLParser):
         self.file_path = file_path
         self.static_urls = static_urls
         self.findings = []
-        self.template_ids = set()
+        self.element_ids = set()
+        self.slot_roles = set()
         # template の中にいるか（SVG ファイルはまるごと template と同じ扱い）
         self.template_depth = 1 if is_standalone_svg else 0
 
@@ -135,9 +152,13 @@ class HtmlChecker(HTMLParser):
             if attribute_name in ("href", "src", "xlink:href", "action", "srcset", "poster"):
                 self.check_reference(tag, attribute_name, attribute_value, is_inside_template)
 
-        # ===== template の記録と、template の中（キャラクター）の決まり =====
-        if tag == "template" and "id" in attribute_map:
-            self.template_ids.add(attribute_map["id"])
+        # ===== 必須の要素の記録 =====
+        if "id" in attribute_map and not is_inside_template:
+            self.element_ids.add(attribute_map["id"])
+        if "slot" in attribute_map.get("class", "").split() and "data-role" in attribute_map:
+            self.slot_roles.add(attribute_map["data-role"])
+
+        # ===== template の中の決まり（template を使うときのため） =====
         if is_inside_template:
             if tag in FORBIDDEN_TEMPLATE_TAGS:
                 self.add_finding(f"キャラクターの中で <{tag}> は使えません")
@@ -172,11 +193,14 @@ def check_html_file(file_path, display_name, static_urls, is_standalone_svg=Fals
     # 外部 URL（属性以外に書かれたものも拾う）
     findings.extend(find_external_urls(text, display_name))
 
-    # index.html には決められた template が全部必要
+    # index.html には app.js が使う要素と作業場所が全部必要
     if file_path.name.lower() == "index.html":
-        for template_id in REQUIRED_TEMPLATE_IDS:
-            if template_id not in checker.template_ids:
-                findings.append(Finding(display_name, 1, f"template id=\"{template_id}\" がありません"))
+        for element_id in REQUIRED_ELEMENT_IDS:
+            if element_id not in checker.element_ids:
+                findings.append(Finding(display_name, 1, f"id=\"{element_id}\" の要素がありません"))
+        for role in REQUIRED_SLOT_ROLES:
+            if role not in checker.slot_roles:
+                findings.append(Finding(display_name, 1, f"作業場所 <div class=\"slot\" data-role=\"{role}\"> がありません"))
     return findings
 
 
@@ -213,7 +237,7 @@ def check_css_file(file_path, display_name, static_urls):
     return findings
 
 
-def check_js_file(file_path, display_name):
+def check_js_file(file_path, display_name, static_urls):
     """JS ファイルを検査する（// や * で始まるコメント行は飛ばす）"""
     findings = []
     text = file_path.read_text(encoding="utf-8")
@@ -226,6 +250,12 @@ def check_js_file(file_path, display_name):
                 findings.append(Finding(display_name, line_number, message))
         if EXTERNAL_URL_PATTERN.search(line):
             findings.append(Finding(display_name, line_number, "外部の URL が書かれています"))
+        # 画像などの URL は STATIC_FILES に登録が必要（/stream のような拡張子の無いものは対象外）
+        for url_match in JS_LOCAL_FILE_URL_PATTERN.finditer(line):
+            if url_match.group(1) not in static_urls:
+                findings.append(
+                    Finding(display_name, line_number, f"STATIC_FILES に登録されていない URL です: {url_match.group(1)}")
+                )
     return findings
 
 
@@ -246,7 +276,7 @@ def check_folder(folder, static_urls):
         elif suffix == ".css":
             findings.extend(check_css_file(file_path, display_name, static_urls))
         elif suffix == ".js":
-            findings.extend(check_js_file(file_path, display_name))
+            findings.extend(check_js_file(file_path, display_name, static_urls))
         else:
             continue
         checked_count += 1

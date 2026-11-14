@@ -3,14 +3,12 @@
 /* =========================================================
    static/app.js の動作テスト（ブラウザで実行する）
    - app.js は app_test.js より先に読み込んでいるので、applySnapshot などがグローバルに見える
-   - 待つ処理は setTimeout で 700ms（app.js の 600ms より少し長く）
+   - 待つ処理は setTimeout で 700ms（app.js の ENTER_MS / LEAVE_MS 500ms より長く）
    - 結果は #test-result に textContent で書く（成功なら "PASS 件数"、失敗なら "FAIL: …"）
    - innerHTML は使わない
    ========================================================= */
 (function () {
-  // 確認する席の色（static の cat-generic の頭の色）
-  const GENERIC_CAT_HEAD_FILL = "#b3b9b7";
-  // 待ち時間（app.js の ENTER_MS / LEAVE_MS は 600ms）
+  const GENERAL_SPRITE_URL = "/assets/octopus/general.png";
   const WAIT_MS = 700;
 
   const testCases = [];
@@ -22,38 +20,30 @@
 
   // ===== 確認用の小さな道具 =====
 
-  // 条件が偽なら失敗にする
   function assertTrue(condition, message) {
     if (!condition) {
       throw new Error(message);
     }
   }
 
-  // 値が一致しなければ失敗にする（期待値と実際の値を表示）
   function assertSame(actual, expected, message) {
     if (actual !== expected) {
       throw new Error(`${message}（期待: ${JSON.stringify(expected)} / 実際: ${JSON.stringify(actual)}）`);
     }
   }
 
-  // 指定ミリ秒待つ
   function waitMilliseconds(milliseconds) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
-  // agent_id の席を探す（無ければ null）
-  function findSeat(agentId) {
-    return document.querySelector(`.seat[data-agent-id="${agentId}"]`);
+  // agent_id のタコを探す（無ければ null）
+  function findActor(agentId) {
+    return document.querySelector(`.worker-actor[data-agent-id="${agentId}"]`);
   }
 
-  // 役割のデスクを探す
-  function findDesk(role) {
-    return document.querySelector(`.desk[data-role="${role}"]`);
-  }
-
-  // デスクにある不在の席の数
-  function countAbsentSeats(desk) {
-    return desk.querySelectorAll('.seat[data-state="absent"]').length;
+  // 役割の作業場所を探す
+  function findSlot(role) {
+    return document.querySelector(`.slot[data-role="${role}"]`);
   }
 
   // ログ（新しい順）の項目
@@ -61,14 +51,14 @@
     return Array.from(document.querySelectorAll("#activity-log > li"));
   }
 
-  // 名札の項目（data-field）の文字
-  function readNameplateField(seat, fieldName) {
-    return seat.querySelector(`[data-field="${fieldName}"]`).textContent;
+  // 「在室中」の人数（#summary-present の数字）
+  function readPresentCount() {
+    return parseInt(document.getElementById("summary-present").textContent, 10);
   }
 
-  // キャラクターの頭の塗りの色
-  function readCatHeadFill(seat) {
-    return seat.querySelector("circle.cat-head").getAttribute("fill");
+  // 「工房の仲間たち」の役割の行
+  function findCrewRow(role) {
+    return document.querySelector(`#worker-list .crew-row[data-role="${role}"]`);
   }
 
   // 入室のイベント（サーバーが送る形に合わせる）
@@ -119,42 +109,35 @@
 
   // ===== テスト本体 =====
 
-  // a. サーバー再起動で seq が戻っても反映される
   defineTest("a: サーバー再起動で seq が戻っても反映される", () => {
     resetScreen();
     applySnapshot({ seq: 500, agents: [] });
     applyEnter(makeEnterEvent("agent-a1", "coder", "sonnet", 501));
-    assertTrue(findSeat("agent-a1") !== null, "seq 501 の enter で席ができていない");
+    assertTrue(findActor("agent-a1") !== null, "seq 501 の enter でタコが出ていない");
 
-    // サーバー再起動を想定して seq 1 の snapshot
     applySnapshot({ seq: 1, agents: [] });
     assertSame(lastSeq, 1, "snapshot 後の lastSeq");
 
     applyEnter(makeEnterEvent("agent-a2", "coder", "sonnet", 2));
-    assertTrue(findSeat("agent-a2") !== null, "再起動後の seq 2 の enter が無視された");
+    assertTrue(findActor("agent-a2") !== null, "再起動後の seq 2 の enter が無視された");
   });
 
-  // b. enter のあとの update は、モデルが変わったときだけログに出す
   defineTest("b: 同じモデルの update はログに出ず、変わったときだけ出る", () => {
     resetScreen();
     applyEnter(makeEnterEvent("agent-b1", "coder", "sonnet", 1));
-    const logCountAfterEnter = findLogItems().length;
-    assertSame(logCountAfterEnter, 1, "enter 後のログ件数");
+    assertSame(findLogItems().length, 1, "enter 後のログ件数");
 
     applyUpdate(makeUpdateEvent("agent-b1", "sonnet", 2));
-    assertSame(findLogItems().length, logCountAfterEnter, "同じモデルの update でログが増えた");
+    assertSame(findLogItems().length, 1, "同じモデルの update でログが増えた");
 
     applyUpdate(makeUpdateEvent("agent-b1", "opus", 3));
-    assertSame(findLogItems().length, logCountAfterEnter + 1, "モデルが変わった update のログ件数");
+    assertSame(findLogItems().length, 2, "モデルが変わった update のログ件数");
     assertSame(findLogItems()[0].dataset.kind, "update", "新しいログの data-kind");
-
-    const seat = findSeat("agent-b1");
-    assertSame(readNameplateField(seat, "model"), "opus", "名札の model");
-    assertSame(seat.dataset.model, "opus", "席の data-model");
+    assertSame(findActor("agent-b1").dataset.model, "opus", "タコの data-model");
+    assertTrue(findCrewRow("coder").textContent.includes("opus"), "仲間たちの一覧にモデルが出ていない");
   });
 
-  // c. 入室前の update（agent_type が null）は席もログも作らない
-  defineTest("c: 入室前の update は席もログも作らない", () => {
+  defineTest("c: 入室前の update はタコもログも作らない", () => {
     resetScreen();
     applyUpdate({
       kind: "model",
@@ -165,120 +148,119 @@
       time: "2026-11-14T10:00:00.000",
       seq: 1,
     });
-    assertTrue(findSeat("agent-c1") === null, "入室前の update で席ができた");
+    assertTrue(findActor("agent-c1") === null, "入室前の update でタコが出た");
     assertSame(findLogItems().length, 0, "入室前の update でログが増えた");
-    assertSame(findDesk("coder").dataset.count, "0", "入室前の update で人数が増えた");
+    assertSame(readPresentCount(), 0, "入室前の update で人数が増えた");
   });
 
-  // d. seq が古い（lastSeq 以下）イベントは無視される
   defineTest("d: seq が古い（lastSeq 以下）イベントは無視される", () => {
     resetScreen();
     applySnapshot({ seq: 10, agents: [] });
 
-    // 同じ seq の enter は無視
     applyEnter(makeEnterEvent("agent-d1", "coder", "sonnet", 10));
-    assertTrue(findSeat("agent-d1") === null, "同じ seq の enter が処理された");
+    assertTrue(findActor("agent-d1") === null, "同じ seq の enter が処理された");
 
-    // 新しい seq の enter は処理
     applyEnter(makeEnterEvent("agent-d1", "coder", "sonnet", 11));
-    assertTrue(findSeat("agent-d1") !== null, "新しい seq の enter が処理されない");
+    assertTrue(findActor("agent-d1") !== null, "新しい seq の enter が処理されない");
 
-    // 同じ seq / 古い seq の update は無視
     applyUpdate(makeUpdateEvent("agent-d1", "opus", 11));
     applyUpdate(makeUpdateEvent("agent-d1", "opus", 9));
-    assertSame(readNameplateField(findSeat("agent-d1"), "model"), "sonnet", "古い seq の update が処理された");
+    assertSame(findActor("agent-d1").dataset.model, "sonnet", "古い seq の update が処理された");
 
-    // 古い seq の leave は無視（席は残る）
     applyLeave(makeLeaveEvent("agent-d1", 10, "stop", "コーディング担当"));
-    assertSame(findSeat("agent-d1").dataset.state, "entering", "古い seq の leave が処理された");
+    assertSame(findActor("agent-d1").dataset.state, "entering", "古い seq の leave が処理された");
     assertSame(lastSeq, 11, "無視されたイベントで lastSeq が変わった");
   });
 
-  // e. enter → entering、700ms 後に present。desk の人数が 1。不在の席が消える
-  defineTest("e: enter で entering → 700ms 後に present。不在の席が消える", async () => {
+  defineTest("e: enter で entering → 700ms 後に present。人数と一覧が変わる", async () => {
     resetScreen();
-    const researcherDesk = findDesk("researcher");
-    assertSame(countAbsentSeats(researcherDesk), 1, "enter 前は不在の席が1つあるはず");
+    assertTrue(document.getElementById("scene-empty").classList.contains("visible"), "誰もいないのに案内が出ていない");
 
     applyEnter(makeEnterEvent("agent-e1", "researcher", "haiku", 1, "調査担当"));
-    const seat = findSeat("agent-e1");
-    assertSame(seat.dataset.state, "entering", "enter 直後の状態");
-    assertSame(researcherDesk.dataset.count, "1", "enter 直後の data-count");
-    assertSame(countAbsentSeats(researcherDesk), 0, "在席がいるのに不在の席が残っている");
+    const actor = findActor("agent-e1");
+    assertSame(actor.closest(".slot").dataset.role, "researcher", "タコが入った作業場所");
+    assertSame(actor.dataset.state, "entering", "enter 直後の状態");
+    assertSame(readPresentCount(), 1, "enter 直後の人数");
+    assertTrue(!document.getElementById("scene-empty").classList.contains("visible"), "在室がいるのに案内が出ている");
+    assertTrue(findCrewRow("researcher").textContent.includes("在室"), "一覧の調査担当が在室になっていない");
 
     await waitMilliseconds(WAIT_MS);
-    assertSame(seat.dataset.state, "present", "700ms 後の状態");
-    assertSame(researcherDesk.dataset.count, "1", "700ms 後の data-count");
+    assertSame(actor.dataset.state, "present", "700ms 後の状態");
   });
 
-  // f. leave → leaving、700ms 後に席が消え、デスクに不在の席が戻る。data-count は 0
-  defineTest("f: leave で leaving → 700ms 後に席が消え、不在の席が戻る", async () => {
+  defineTest("f: leave で leaving → 700ms 後にタコが消える", async () => {
     resetScreen();
-    const researcherDesk = findDesk("researcher");
     applyEnter(makeEnterEvent("agent-f1", "researcher", "haiku", 1, "調査担当"));
     await waitMilliseconds(WAIT_MS);
 
-    const seat = findSeat("agent-f1");
+    const actor = findActor("agent-f1");
     applyLeave(makeLeaveEvent("agent-f1", 2, "stop", "調査担当"));
-    assertSame(seat.dataset.state, "leaving", "leave 直後の状態");
-    assertSame(researcherDesk.dataset.count, "0", "leaving の席は人数に数えない");
+    assertSame(actor.dataset.state, "leaving", "leave 直後の状態");
+    assertSame(readPresentCount(), 0, "leaving のタコは人数に数えない");
 
-    // 通常の退室（stop）はログに data-reason が付かない
     const leaveLogItem = findLogItems()[0];
     assertSame(leaveLogItem.dataset.kind, "leave", "退室のログ data-kind");
     assertSame(leaveLogItem.dataset.reason, undefined, "stop の退室に data-reason が付いた");
 
     await waitMilliseconds(WAIT_MS);
-    assertTrue(!seat.isConnected, "700ms 後も席が画面に残っている");
-    assertTrue(findSeat("agent-f1") === null, "700ms 後も agent-f1 の席が見える");
-    assertSame(countAbsentSeats(researcherDesk), 1, "席が空いたのに不在の席が戻らない");
-    assertSame(researcherDesk.dataset.count, "0", "700ms 後の data-count");
+    assertTrue(!actor.isConnected, "700ms 後もタコが画面に残っている");
+    assertTrue(findCrewRow("researcher").textContent.includes("不在"), "一覧の調査担当が不在に戻らない");
   });
 
-  // f2. reason が timeout の退室はログに data-reason="timeout" が付く
   defineTest("f2: reason timeout の退室はログに data-reason=timeout が付く", async () => {
     resetScreen();
     applyEnter(makeEnterEvent("agent-f2", "coder", "sonnet", 1));
     applyLeave(makeLeaveEvent("agent-f2", 2, "timeout", "コーディング担当"));
 
     const newestLogItem = findLogItems()[0];
-    assertSame(newestLogItem.dataset.kind, "leave", "退室のログ data-kind");
     assertSame(newestLogItem.dataset.reason, "timeout", "timeout の退室の data-reason");
     assertTrue(newestLogItem.textContent.includes("時間切れ"), "timeout のログの文字に「時間切れ」が無い");
 
     await waitMilliseconds(WAIT_MS);
-    assertTrue(findSeat("agent-f2") === null, "timeout の退室で席が消えていない");
+    assertTrue(findActor("agent-f2") === null, "timeout の退室でタコが消えていない");
   });
 
-  // g. 知らない agent_type は other デスクに入り、cat-generic の絵になる
-  defineTest("g: 知らない agent_type は other デスクに入り cat-generic の絵になる", () => {
+  defineTest("f3: 退室中にほかのイベントが届いても、退室のアニメが続く", async () => {
+    resetScreen();
+    applyEnter(makeEnterEvent("agent-f3", "researcher", "haiku", 1, "調査担当"));
+    await waitMilliseconds(WAIT_MS);
+    const actor = findActor("agent-f3");
+
+    applyLeave(makeLeaveEvent("agent-f3", 2, "stop", "調査担当"));
+    applyEnter(makeEnterEvent("agent-f3b", "coder", "sonnet", 3));
+    applyUpdate(makeUpdateEvent("agent-f3b", "opus", 4));
+    assertTrue(actor.isConnected, "ほかのイベントで退室中のタコがすぐ消えた");
+    assertSame(actor.dataset.state, "leaving", "退室中のタコの状態");
+    assertTrue(!actor.hidden, "退室中のタコが隠れた");
+
+    await waitMilliseconds(WAIT_MS);
+    assertTrue(!actor.isConnected, "アニメの後もタコが残っている");
+  });
+
+  defineTest("g: 知らない agent_type は other の作業場所に入り、general の絵になる", () => {
     resetScreen();
     applyEnter(makeEnterEvent("agent-g1", "Explore", "haiku", 1, "Explore"));
-    const seat = findSeat("agent-g1");
-    assertTrue(seat !== null, "知らない agent_type の席ができていない");
-    assertSame(seat.closest(".desk").dataset.role, "other", "席が入ったデスク");
-    assertSame(findDesk("other").dataset.count, "1", "other デスクの data-count");
-    assertSame(readCatHeadFill(seat), GENERIC_CAT_HEAD_FILL, "cat-generic の絵の色");
-    assertSame(seat.dataset.agentType, "Explore", "席の data-agent-type");
+    const actor = findActor("agent-g1");
+    assertTrue(actor !== null, "知らない agent_type のタコが出ていない");
+    assertSame(actor.closest(".slot").dataset.role, "other", "タコが入った作業場所");
+    assertSame(actor.querySelector("img").getAttribute("src"), GENERAL_SPRITE_URL, "general の絵");
+    assertSame(actor.dataset.agentType, "Explore", "タコの data-agent-type");
   });
 
-  // h. agent_type に "../x" や "absent" が来ても cat-generic になる（cat-absent にならない）
-  defineTest("h: agent_type に ../x や absent が来ても cat-generic になる", () => {
+  defineTest("h: agent_type に ../x や absent が来ても general の絵で other に入る", () => {
     resetScreen();
-    const suspiciousAgentTypes = ["../x", "absent", "generic"];
+    const suspiciousAgentTypes = ["../x", "absent", "generic", "other"];
     suspiciousAgentTypes.forEach((agentType, index) => {
       applyEnter(makeEnterEvent(`agent-h${index}`, agentType, "sonnet", index + 1));
     });
-
     suspiciousAgentTypes.forEach((agentType, index) => {
-      const seat = findSeat(`agent-h${index}`);
-      assertTrue(seat !== null, `agent_type "${agentType}" の席ができていない`);
-      assertSame(seat.dataset.state, "entering", `agent_type "${agentType}" の状態（absent になっていないか）`);
-      assertSame(readCatHeadFill(seat), GENERIC_CAT_HEAD_FILL, `agent_type "${agentType}" で cat-generic の絵になっていない`);
+      const actor = findActor(`agent-h${index}`);
+      assertTrue(actor !== null, `agent_type "${agentType}" のタコが出ていない`);
+      assertSame(actor.closest(".slot").dataset.role, "other", `agent_type "${agentType}" の作業場所`);
+      assertSame(actor.querySelector("img").getAttribute("src"), GENERAL_SPRITE_URL, `agent_type "${agentType}" の絵`);
     });
   });
 
-  // i. ログは最大50件（古いものから消える）
   defineTest("i: ログは最大50件で、古いものから消える", () => {
     resetScreen();
     for (let number = 1; number <= 60; number += 1) {
@@ -290,12 +272,9 @@
     assertTrue(logItems[49].textContent.includes("担当11"), "一番古く残るログが違う（11 件目のはず）");
   });
 
-  // j. snapshot で全席が作り直され、在席者は present で置かれる
-  defineTest("j: snapshot で全席が作り直され、在席者は present で置かれる", () => {
+  defineTest("j: snapshot でタコが全部置き直され、在室者は present で置かれる", () => {
     resetScreen();
-    // 入室中（entering）の席を作っておく
     applyEnter(makeEnterEvent("agent-j1", "researcher", "haiku", 1, "調査担当"));
-    assertSame(findSeat("agent-j1").dataset.state, "entering", "snapshot 前の状態");
 
     applySnapshot({
       seq: 5,
@@ -304,22 +283,59 @@
         { agent_id: "agent-j3", agent_type: "researcher", role_label: "調査担当", model: "sonnet", started_at: "2026-11-14T09:30:00" },
       ],
     });
+    assertTrue(findActor("agent-j1") === null, "snapshot で古いタコが消えていない");
+    assertSame(findActor("agent-j2").dataset.state, "present", "snapshot のタコの状態（アニメなしで present）");
+    assertSame(findActor("agent-j3").dataset.state, "present", "snapshot のタコの状態（アニメなしで present）");
+    assertSame(readPresentCount(), 2, "snapshot 後の人数");
+  });
 
-    assertTrue(findSeat("agent-j1") === null, "snapshot で古い席が消えていない");
-    const seatJ2 = findSeat("agent-j2");
-    const seatJ3 = findSeat("agent-j3");
-    assertTrue(seatJ2 !== null && seatJ3 !== null, "snapshot の在席者の席ができていない");
-    assertSame(seatJ2.dataset.state, "present", "snapshot の席の状態（アニメなしで present）");
-    assertSame(seatJ3.dataset.state, "present", "snapshot の席の状態（アニメなしで present）");
-    assertSame(findDesk("coder").dataset.count, "1", "coder の data-count");
-    assertSame(findDesk("researcher").dataset.count, "1", "researcher の data-count");
-    assertSame(countAbsentSeats(findDesk("researcher")), 0, "在席がいるデスクに不在の席が残っている");
-    assertSame(countAbsentSeats(findDesk("test-runner")), 1, "在席がいないデスクには不在の席があるはず");
+  defineTest("k: 同じ agent_id の二重 enter ではタコが1匹のまま", () => {
+    resetScreen();
+    applyEnter(makeEnterEvent("agent-k1", "coder", "sonnet", 1));
+    applyEnter(makeEnterEvent("agent-k1", "coder", "opus", 2));
+    assertSame(document.querySelectorAll('.worker-actor[data-agent-id="agent-k1"]').length, 1, "タコの数");
+    assertSame(findActor("agent-k1").dataset.model, "opus", "二重 enter で情報が更新されない");
+    assertSame(readPresentCount(), 1, "二重 enter で人数が増えた");
+
+    // 役割が変わった enter は、新しい作業場所に置き直す
+    applyEnter(makeEnterEvent("agent-k1", "researcher", "haiku", 3, "調査担当"));
+    assertSame(document.querySelectorAll('.worker-actor[data-agent-id="agent-k1"]').length, 1, "役割変更後のタコの数");
+    assertSame(findActor("agent-k1").closest(".slot").dataset.role, "researcher", "役割変更後の作業場所");
+  });
+
+  defineTest("l: 1つの作業場所に絵を出すのは4匹まで。残りは「ほか○匹」", () => {
+    resetScreen();
+    for (let number = 1; number <= 6; number += 1) {
+      applyEnter(makeEnterEvent(`agent-l${number}`, "coder", "sonnet", number));
+    }
+    const slot = findSlot("coder");
+    const shownActors = Array.from(slot.querySelectorAll(".worker-actor")).filter((actor) => !actor.hidden);
+    assertSame(shownActors.length, 4, "絵を出している数");
+    const badge = slot.querySelector(".overflow-badge");
+    assertTrue(badge !== null && !badge.hidden, "「ほか○匹」が出ていない");
+    assertSame(badge.textContent, "ほか2匹", "「ほか○匹」の文字");
+    assertSame(readPresentCount(), 6, "人数");
+  });
+
+  defineTest("m: 届いた文字は HTML として解釈されない", () => {
+    resetScreen();
+    const suspiciousLabel = '<img src="/x" id="injected-m">';
+    applyEnter(makeEnterEvent("agent-m1", "coder", "sonnet", 1, suspiciousLabel));
+    assertTrue(document.getElementById("injected-m") === null, "role_label の中のタグが要素になった");
+    assertSame(findActor("agent-m1").querySelector(".bubble").textContent, suspiciousLabel, "吹き出しの文字");
+    assertTrue(findLogItems()[0].textContent.includes(suspiciousLabel), "ログに文字のまま出ていない");
+  });
+
+  defineTest("n: toLocalTimestamp は現地時刻で、タイムゾーン記号を付けない", () => {
+    const text = toLocalTimestamp(new Date(2026, 0, 2, 3, 4, 5, 6));
+    assertSame(text, "2026-01-02T03:04:05.006", "toLocalTimestamp の結果");
+    // 現地時刻の今を入室時刻にすると、経過は 0:00 付近（9時間ずれたりしない）
+    const elapsed = formatElapsed(toLocalTimestamp(new Date()).slice(0, 19));
+    assertTrue(elapsed === "0:00" || elapsed === "0:01", `入室直後の経過が 0:00 にならない（${elapsed}）`);
   });
 
   // ===== 実行と結果の書き込み =====
 
-  // 全テストを順に実行し、結果を #test-result に書く
   async function runAllTests() {
     const failureMessages = [];
     let passedCount = 0;
@@ -343,7 +359,6 @@
     }
   }
 
-  // 読み込みが終わってから実行する（defer の読み込みなので普通は DOMContentLoaded 前）
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", runAllTests);
   } else {
