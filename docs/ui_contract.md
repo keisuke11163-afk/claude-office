@@ -37,17 +37,23 @@ body[data-mode="live"|"mock"]
         └─ main
             ├─ section.workshop#workshop
             │   ├─ #scene-population               "N WORKERS"
-            │   └─ div.scene#scene[data-light="day"|"dusk"|"night"][.night]
-            │       ├─ img.background-art            ジオラマの背景
-            │       ├─ div.light-layer#light-layer   照明レイヤー（aria-hidden。「6. 照明レイヤー・モーションのしくみ」）
-            │       │   ├─ div.light-tint[data-tint="dusk"|"night"]   色かぶり（multiply）
-            │       │   ├─ div.light-moon                              月明かり（screen）
-            │       │   └─ span.light-spot[data-light-kind][data-spot] × 9  窓・ランタン・ろうそく・入口の光（screen）
-            │       ├─ div.slot[data-role] × 6       作業場所（CSS で背景の上の位置を決める）
-            │       │   ├─ button.worker-actor × 0人以上（JS が出し入れ）
-            │       │   └─ span.bubble.overflow-badge   「ほか○匹」（5人目から）
-            │       ├─ div.scene-fx#scene-fx         見た目専用のレイヤー（退室の影武者 div.octo-ghost を JS が出し入れ）
-            │       └─ div#scene-empty[.visible]     誰もいないときの案内
+            │   └─ div.scene-viewport#scene-viewport[data-zoomed]  正方形の枠。中の #scene を JS が拡大・縮小・移動（transform）
+            │       ├─ div.scene#scene[data-light="day"|"dusk"|"night"][.night][data-city-blink?]  街全体（3:2）
+            │       │   ├─ img.background-art            街の中のオフィスビルの背景（1536×1024、オフィスは中央の x=256〜1280）
+            │       │   ├─ div.light-layer#light-layer   照明レイヤー（aria-hidden。「6. 照明レイヤー・モーションのしくみ」）
+            │       │   │   ├─ div.light-tint[data-tint="dusk"|"night"|"night-room"]  色かぶり（multiply。夜は部屋の外と中で分ける）
+            │       │   │   ├─ div.light-moon                              月明かり（screen）
+            │       │   │   ├─ div.light-city > img[data-city] × 5          街の窓の明かり（夜。a/b/c は点滅、beacon は屋上ランプ）
+            │       │   │   └─ span.light-spot[data-light-kind][data-spot] × 15  天井灯・画面・サーバー・入口の光（screen）
+            │       │   ├─ div.slot[data-role] × 6       作業場所（left/top は1匹目の足もと。2匹目は --seat2-dx/dy、入口は --door-x/y）
+            │       │   │   ├─ button.worker-actor × 0人以上（JS が出し入れ）
+            │       │   │   └─ span.bubble.overflow-badge   「ほか○匹」（3匹目から）
+            │       │   ├─ img.foreground-art            手前の家具（机・受付・検査台の前面）。タコの下半分を隠す
+            │       │   ├─ div.foreground-tint           手前の家具に掛ける夕方・夜の色（家具の形で切り抜く）
+            │       │   ├─ img.light-room                部屋の明かり（screen。家具とタコも照らす）
+            │       │   ├─ div.scene-fx#scene-fx         見た目専用のレイヤー（退室の影武者 div.octo-ghost を JS が出し入れ）
+            │       │   └─ div#scene-empty[.visible]     誰もいないときの案内
+            │       └─ div.zoom-controls             #zoom-in / #zoom-out / #zoom-office / #zoom-reset（拡大の上限はオフィスが枠いっぱい、下限は街全体）
             ├─ aside.right-panels#crew
             │   ├─ #crew-total                     "N 在室"
             │   ├─ div#worker-list                 役割ごとの button.crew-row × 6（JS が毎回作り直す。hover / focus で工房を強調）
@@ -71,7 +77,7 @@ body[data-mode="live"|"mock"]
 
 - 6つとも `index.html` に必要です（check_static が確かめます）
 - 位置は CSS の `.slot[data-role="…"] { left: …%; top: …% }` で、背景の上に置きます
-- 1つの作業場所に絵を出すのは **4匹まで**。5匹目からは `hidden` が付き、`.overflow-badge` に「ほか○匹」が出ます
+- 1つの作業場所に絵を出すのは **2匹まで**（役割ごとの居場所2か所）。3匹目からは `hidden` が付き、`.overflow-badge` に「ほか○匹」が出ます
 
 ### タコ `button.worker-actor`
 
@@ -194,9 +200,10 @@ body[data-mode="live"|"mock"]
 
 1. `img.background-art`（背景の絵。filter はかけない）
 2. `.light-layer` の中身（`z-index: 1`）：色かぶり（`mix-blend-mode: multiply`）→ 月明かり・光スポット（`screen`）。`.light-layer` 自体には z-index / opacity を付けない（付けると背景と混ざらなくなる）
-3. `.slot`（`z-index: 2`）：`::before` がデスクライトの光だまり（タコの後ろ）、`::after` がタコを照らす薄い光（`soft-light`）
-4. `#scene-fx`（`z-index: 3`）：退室の影武者
-5. `#scene-empty`（`z-index: 4`）
+3. `.slot`（`z-index: 2`）：タコ（`::before` / `::after` の光だまりは使わない）
+4. `.foreground-art` → `.foreground-tint` → `.light-room`（`z-index: 2`、DOM の順で `.slot` より上）：手前の家具、その色かぶり、部屋の明かり
+5. `#scene-fx`（`z-index: 3`）：退室の影武者
+6. `#scene-empty`（`z-index: 4`）
 
 - 照明・影武者はすべて `pointer-events: none`。UI（パネル・ボタン・文字）は暗くなりません
 - 切り替えは各層の `opacity` を `transition`（`--light-fade`、既定 1 秒）で変えます。昼はほぼ透明、夕は斜めのオレンジの色かぶりと弱い窓明かり、夜は青い色かぶり + 月明かりと、窓・ランタン・ろうそく・デスクライトの暖色

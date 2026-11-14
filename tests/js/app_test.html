@@ -42,31 +42,56 @@
       <div class="heading"><div><span class="eyebrow">WELCOME TO THE WORKSHOP</span><h1>小さなタコたちの開発工房。</h1><p>入室も退室も、ちょっとした物語になる場所。</p></div><span class="heading-stamp">✳<br>OPEN</span></div>
       <div class="content-grid">
         <section class="workshop" id="workshop" aria-label="工房のジオラマ">
-          <div class="scene-top"><span>✿ ISOMETRIC WORKSHOP</span><span id="scene-population">0 WORKERS</span></div>
-          <div class="scene" id="scene" data-light="day">
-            <img class="background-art" src="/assets/workshop_background.png" alt="タコのための小さな二階建て工房。木製家具や植物、石畳、ピンク色の屋根のあるジオラマ。" draggable="false">
-            <div class="light-layer" id="light-layer" aria-hidden="true">
-              <div class="light-tint" data-tint="dusk"></div>
-              <div class="light-tint" data-tint="night"></div>
-              <div class="light-moon"></div>
-              <span class="light-spot" data-light-kind="window" data-spot="window-left-1"></span>
-              <span class="light-spot" data-light-kind="window" data-spot="window-left-2"></span>
-              <span class="light-spot" data-light-kind="window" data-spot="window-arch"></span>
-              <span class="light-spot" data-light-kind="window" data-spot="window-small"></span>
-              <span class="light-spot" data-light-kind="lantern" data-spot="lantern-1"></span>
-              <span class="light-spot" data-light-kind="lantern" data-spot="lantern-2"></span>
-              <span class="light-spot" data-light-kind="candle" data-spot="candle-1"></span>
-              <span class="light-spot" data-light-kind="candle" data-spot="candle-2"></span>
-              <span class="light-spot" data-light-kind="door" data-spot="door"></span>
+          <div class="scene-top"><span>✿ OFFICE BUILDING</span><span id="scene-population">0 WORKERS</span></div>
+          <div class="scene-viewport" id="scene-viewport" data-zoomed="false">
+            <div class="scene" id="scene" data-light="day">
+              <img class="background-art" src="/assets/workshop_background.png" alt="街角に建つ3階建てのオフィスビルの断面。左は雑居ビル、右は商店。3階は資料と説明、2階は開発、1階はロビーとテストのフロア。" draggable="false">
+              <div class="light-layer" id="light-layer" aria-hidden="true">
+                <div class="light-tint" data-tint="dusk"></div>
+                <div class="light-tint" data-tint="night"></div>
+                <div class="light-tint" data-tint="night-room"></div>
+                <div class="light-moon"></div>
+                <div class="light-city">
+                  <img data-city="base" src="/assets/city_lights_base.png" alt="" draggable="false">
+                  <img data-city="a" src="/assets/city_lights_a.png" alt="" draggable="false">
+                  <img data-city="b" src="/assets/city_lights_b.png" alt="" draggable="false">
+                  <img data-city="c" src="/assets/city_lights_c.png" alt="" draggable="false">
+                  <img data-city="beacon" src="/assets/city_lights_beacon.png" alt="" draggable="false">
+                </div>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-c"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-c"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-c"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="screen-3f"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-5"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-6"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-7"></span>
+                <span class="light-spot" data-light-kind="server" data-spot="server"></span>
+                <span class="light-spot" data-light-kind="door" data-spot="door"></span>
+              </div>
+              <div class="slot" data-role="researcher" aria-label="調査担当の作業場所"></div>
+              <div class="slot" data-role="coder" aria-label="コーディング担当の作業場所"></div>
+              <div class="slot" data-role="test-runner" aria-label="テスト担当の作業場所"></div>
+              <div class="slot" data-role="code-reviewer" aria-label="レビュー担当の作業場所"></div>
+              <div class="slot" data-role="code-explainer" aria-label="解説担当の作業場所"></div>
+              <div class="slot" data-role="other" aria-label="その他の作業場所"></div>
+              <img class="foreground-art" src="/assets/workshop_foreground.png" alt="" aria-hidden="true" draggable="false">
+              <div class="foreground-tint" aria-hidden="true"><div data-tint="dusk"></div><div data-tint="night"></div></div>
+              <img class="light-room" src="/assets/room_light.png" alt="" aria-hidden="true" draggable="false">
+              <div class="scene-fx" id="scene-fx" aria-hidden="true"></div>
+              <div class="scene-empty" id="scene-empty">作業員が来るのを待っています…</div>
             </div>
-            <div class="slot" data-role="researcher" aria-label="調査担当の作業場所"></div>
-            <div class="slot" data-role="coder" aria-label="コーディング担当の作業場所"></div>
-            <div class="slot" data-role="test-runner" aria-label="テスト担当の作業場所"></div>
-            <div class="slot" data-role="code-reviewer" aria-label="レビュー担当の作業場所"></div>
-            <div class="slot" data-role="code-explainer" aria-label="解説担当の作業場所"></div>
-            <div class="slot" data-role="other" aria-label="その他の作業場所"></div>
-            <div class="scene-fx" id="scene-fx" aria-hidden="true"></div>
-            <div class="scene-empty" id="scene-empty">作業員が来るのを待っています…</div>
+            <div class="zoom-controls" role="group" aria-label="背景の拡大・縮小">
+              <button type="button" id="zoom-in" aria-label="拡大">＋</button>
+              <button type="button" id="zoom-out" aria-label="縮小">－</button>
+              <button type="button" id="zoom-office" aria-label="オフィスを表示">オフィス</button>
+              <button type="button" id="zoom-reset" aria-label="街の全体を表示">全体</button>
+            </div>
           </div>
           <div class="scene-bottom"><span>☼ ちいさな世界の、大きなお仕事。</span><span>タコを選ぶと詳細を表示</span></div>
         </section>

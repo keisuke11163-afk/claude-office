@@ -304,17 +304,17 @@
     assertSame(findActor("agent-k1").closest(".slot").dataset.role, "researcher", "役割変更後の作業場所");
   });
 
-  defineTest("l: 1つの作業場所に絵を出すのは4匹まで。残りは「ほか○匹」", () => {
+  defineTest("l: 1つの作業場所に絵を出すのは MAX_ACTORS_PER_SLOT 匹まで。残りは「ほか○匹」", () => {
     resetScreen();
     for (let number = 1; number <= 6; number += 1) {
       applyEnter(makeEnterEvent(`agent-l${number}`, "coder", "sonnet", number));
     }
     const slot = findSlot("coder");
     const shownActors = Array.from(slot.querySelectorAll(".worker-actor")).filter((actor) => !actor.hidden);
-    assertSame(shownActors.length, 4, "絵を出している数");
+    assertSame(shownActors.length, MAX_ACTORS_PER_SLOT, "絵を出している数");
     const badge = slot.querySelector(".overflow-badge");
     assertTrue(badge !== null && !badge.hidden, "「ほか○匹」が出ていない");
-    assertSame(badge.textContent, "ほか2匹", "「ほか○匹」の文字");
+    assertSame(badge.textContent, `ほか${6 - MAX_ACTORS_PER_SLOT}匹`, "「ほか○匹」の文字");
     assertSame(readPresentCount(), 6, "人数");
   });
 
@@ -382,7 +382,11 @@
     const actor = findActor("agent-p1");
     assertTrue(MOTION_NAMES.includes(actor.dataset.motion), `data-motion が無い・知らない値（${actor.dataset.motion}）`);
     assertTrue(actor.dataset.facing === "left" || actor.dataset.facing === "right", "data-facing が無い");
-    assertSame(actor.dataset.frame, "0", "1枚絵の data-frame");
+    // data-frame はスプライトシートの行（シートが無い役割は 1枚絵なので "0"）
+    const sheet = Object.hasOwn(SPRITE_SHEETS, "coder") ? SPRITE_SHEETS.coder : null;
+    const expectedFrame = sheet && Object.hasOwn(sheet.rowByMotion, actor.dataset.motion) ? sheet.rowByMotion[actor.dataset.motion] : 0;
+    assertSame(actor.dataset.frame, String(expectedFrame), "data-frame（シートの行）");
+    assertSame(actor.querySelector(".octo-body").dataset.sprite, sheet ? "sheet" : "image", "本体の表示方法");
     assertSame(actor.dataset.state, "entering", "在席状態は今までどおり entering");
     // 部品：最初の img が役割の絵、名札は button の直下
     assertTrue(actor.querySelector(".octo-rig > .octo-body > img.octo-sprite") !== null, "octo-rig > octo-body > img が無い");
@@ -460,8 +464,9 @@
     await waitMilliseconds(WALK_WAIT_MS);
     const remainingActors = Array.from(slot.querySelectorAll(".worker-actor"));
     assertSame(remainingActors.length, 4, "退室後のタコの数");
-    assertTrue(remainingActors.every((actor) => !actor.hidden), "4匹なのに hidden のタコがいる");
-    assertTrue(slot.querySelector(".overflow-badge").hidden, "4匹なのに「ほか○匹」が出ている");
+    const expectedHidden = Math.max(0, 4 - MAX_ACTORS_PER_SLOT);
+    assertSame(remainingActors.filter((actor) => actor.hidden).length, expectedHidden, "退室後に hidden のタコの数");
+    assertSame(slot.querySelector(".overflow-badge").hidden, expectedHidden === 0, "退室後の「ほか○匹」の表示");
     assertSame(document.getElementById("scene-fx").children.length, 0, "影武者が残っている");
     assertSame(readPresentCount(), 4, "退室後の人数");
   });
@@ -615,7 +620,7 @@
     }
   });
 
-  defineTest("z: 役割ごとに仕事のポーズが決まり、小物（.octo-prop）が見える", () => {
+  defineTest("z: 役割ごとに仕事のポーズが決まり、小物が見える（シートの役割はシートの絵、それ以外は .octo-prop）", () => {
     resetScreen();
     const roles = Object.keys(WORK_POSES);
     applySnapshot({
@@ -635,7 +640,9 @@
         setActorMotion(record, "work", pose);
         assertSame(record.actorElement.dataset.pose, pose, `${role} の仕事のポーズ`);
         assertSame(record.actorElement.dataset.motion, "work", `${role} の動き`);
-        assertSame(getComputedStyle(record.actorElement.querySelector(".octo-prop")).display, "block", `${role}（${pose}）の小物が見えない`);
+        // スプライトシートの役割は小物もシートに描いてあるので、CSS の小物は出さない
+        const expectedPropDisplay = Object.hasOwn(SPRITE_SHEETS, role) ? "none" : "block";
+        assertSame(getComputedStyle(record.actorElement.querySelector(".octo-prop")).display, expectedPropDisplay, `${role}（${pose}）の小物の表示`);
       }
       // 知らないポーズは、その役割のポーズから選び直す
       setActorMotion(record, "work", "知らないポーズ");

@@ -15,7 +15,7 @@
 const ENTER_MS = 500; // entering から present に切り替えるまでの時間（CSS の enter アニメと同じ長さ）
 const LEAVE_MS = 500; // leaving のタコを DOM から消すまでの時間（CSS の leave アニメと同じ長さ）
 const MAX_LOG_ENTRIES = 50; // ログに残す件数
-const MAX_ACTORS_PER_SLOT = 4; // 1つの作業場所に絵を出す人数（超えた分は「ほか○匹」）
+const MAX_ACTORS_PER_SLOT = 2; // 1つの作業場所に絵を出す人数（超えた分は「ほか○匹」）
 const ELAPSED_REFRESH_MS = 1000; // 経過時間を書き換える間隔
 
 // ===== 照明（昼・夕・夜）の設定 =====
@@ -34,7 +34,7 @@ const GHOST_CLEANUP_MARGIN_MS = 200; // 退室の影武者は、歩き終わり�
 const MOTION_TICK_MS = 1700; // モーション指揮役が動く間隔
 const MOTION_PICK_RATE = 0.35; // 1回の指揮で動きを変えるタコの割合
 const FACING_TURN_RATE = 0.2; // 待機に戻るとき、反対を向く割合（きょろきょろ）
-const DEFAULT_DOOR_PERCENT = { x: 22, y: 60 }; // CSS の --door-x / --door-y が読めないときの入口（#scene に対する %）
+const DEFAULT_DOOR_PERCENT = { x: 25.1, y: 87.4 }; // CSS の --door-x / --door-y が読めないときの入口（#scene に対する %）
 const BLINK_MIN_MS = 3200; // まばたきの間隔（タコごとにこの範囲でばらす）
 const BLINK_MAX_MS = 6800;
 
@@ -59,10 +59,21 @@ const WORK_POSES = {
 const REACTIONS = ["surprise", "joy", "trouble"];
 
 // 役割ごとのスプライトシート（まだ無いので空）。用意できたら次の形で足す：
-//   coder: { url: "/assets/octopus/coder_sheet.png", frameCount: 4, fps: 8, rowByMotion: { idle: 0, walk: 1, work: 2, react: 3 } }
-//   - 1行が1つのモーション、横にコマが frameCount 枚（2枚以上）並んだ画像。URL は server.py の STATIC_FILES にも登録する
-//   - 設定が無い役割は、今の1枚絵 + CSS の仮アニメ（呼吸・まばたき・よちよち）で動く
-const SPRITE_SHEETS = {};
+//   coder: { url: "/assets/octopus/coder_sheet.png", frameCount: 16, fps: 8, rowByMotion: { idle: 0, … }, framesByMotion: { idle: 16, walk: 6, … } }
+//   - 1行が1つのモーション。横の列数が frameCount。行ごとに使うコマ数が違うときは framesByMotion（左から何コマ使うか）
+//   - URL は server.py の STATIC_FILES にも登録する
+//   - 設定が無い役割は、1枚絵 + CSS の仮アニメ（呼吸・まばたき・よちよち）で動く
+// 1コマ 400×360、4行（待機・歩き・作業・リアクション）× 16列。待機は16コマでまばたき1回、歩きとリアクションは6コマ、作業は8コマ
+const SHEET_ROWS = { idle: 0, walk: 1, work: 2, react: 3 };
+const SHEET_FRAMES = { idle: 16, walk: 6, work: 8, react: 6 };
+const SPRITE_SHEETS = {
+  researcher: { url: "/assets/octopus/researcher_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+  coder: { url: "/assets/octopus/coder_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+  "test-runner": { url: "/assets/octopus/test-runner_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+  "code-reviewer": { url: "/assets/octopus/code-reviewer_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+  "code-explainer": { url: "/assets/octopus/code-explainer_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+  other: { url: "/assets/octopus/general_sheet.png", frameCount: 16, fps: 8, rowByMotion: SHEET_ROWS, framesByMotion: SHEET_FRAMES },
+};
 
 // 作業場所の役割（index.html の .slot と同じ並び）。ここに無い agent_type は other へ
 const ROLE_ORDER = ["researcher", "coder", "test-runner", "code-reviewer", "code-explainer", "other"];
@@ -364,12 +375,19 @@ function applySpriteFrame(record) {
   const rowNumbers = Object.values(sheet.rowByMotion);
   const rowCount = Math.max(...rowNumbers) + 1;
   const row = Object.hasOwn(sheet.rowByMotion, record.motion) ? sheet.rowByMotion[record.motion] : 0;
+  // この行で使うコマ数（指定が無ければ全列）
+  const frames =
+    sheet.framesByMotion && Object.hasOwn(sheet.framesByMotion, record.motion)
+      ? Math.min(sheet.framesByMotion[record.motion], sheet.frameCount)
+      : sheet.frameCount;
   bodyElement.dataset.sprite = "sheet";
   bodyElement.style.setProperty("--sheet-image", `url("${sheet.url}")`);
-  bodyElement.style.setProperty("--sheet-frames", String(sheet.frameCount));
+  bodyElement.style.setProperty("--sheet-cols", String(sheet.frameCount));
+  bodyElement.style.setProperty("--sheet-frames", String(frames));
+  bodyElement.style.setProperty("--sheet-end", `${sheet.frameCount > 1 ? ((frames - 1) / (sheet.frameCount - 1)) * 100 : 0}%`);
   bodyElement.style.setProperty("--sheet-rows", String(rowCount));
   bodyElement.style.setProperty("--sheet-row-ratio", String(rowCount > 1 ? row / (rowCount - 1) : 0));
-  bodyElement.style.setProperty("--sheet-duration", `${sheet.frameCount / sheet.fps}s`);
+  bodyElement.style.setProperty("--sheet-duration", `${frames / sheet.fps}s`);
   record.frame = row;
   actorElement.dataset.frame = String(row);
 }
@@ -443,7 +461,7 @@ function findOverflowBadge(slotElement) {
   return badge;
 }
 
-// 作業場所ごとに、絵を出す人（最大4人）と「ほか○匹」を整える
+// 作業場所ごとに、絵を出す人（最大 MAX_ACTORS_PER_SLOT 人）と「ほか○匹」を整える
 // 要素は動かさず hidden を切り替えるだけなので、アニメがやり直しにならない
 function refreshSlots() {
   for (const role of ROLE_ORDER) {
@@ -541,11 +559,13 @@ function canPlayWalk() {
   return !prefersReducedMotion() && byId("scene") !== null && byId("scene-fx") !== null;
 }
 
-// 入口（扉・階段）の画面上の位置。CSS の --door-x / --door-y（#scene に対する %）を読む
-function findDoorPoint() {
+// 入口（自動ドア・エレベーター）の画面上の位置。CSS の --door-x / --door-y（#scene に対する %）を読む
+// タコのいる .slot から読むので、上の階の作業場所は .slot に書いたエレベーターの位置になる（無ければ #scene の値を引き継ぐ）
+function findDoorPoint(fromElement) {
   const scene = byId("scene");
   const sceneRect = scene.getBoundingClientRect();
-  const sceneStyle = getComputedStyle(scene);
+  const slotElement = fromElement ? fromElement.closest(".slot") : null;
+  const sceneStyle = getComputedStyle(slotElement || scene);
   const doorXPercent = parseFloat(sceneStyle.getPropertyValue("--door-x"));
   const doorYPercent = parseFloat(sceneStyle.getPropertyValue("--door-y"));
   const xPercent = Number.isFinite(doorXPercent) ? doorXPercent : DEFAULT_DOOR_PERCENT.x;
@@ -575,9 +595,10 @@ function startEnterWalk(record) {
     return;
   }
   // 足もと（絵の下の中央）から入口までのずれ。このずれの位置から 0 に向かって歩く
-  const door = findDoorPoint();
-  const offsetX = door.x - (rigRect.left + rigRect.width / 2);
-  const offsetY = door.y - rigRect.bottom;
+  const door = findDoorPoint(actorElement);
+  const sceneScale = getSceneScale();
+  const offsetX = (door.x - (rigRect.left + rigRect.width / 2)) / sceneScale;
+  const offsetY = (door.y - rigRect.bottom) / sceneScale;
   actorElement.style.setProperty("--walk-from-x", `${Math.round(offsetX)}px`);
   actorElement.style.setProperty("--walk-from-y", `${Math.round(offsetY)}px`);
   actorElement.style.setProperty("--walk-ms", `${WALK_MS}ms`);
@@ -610,9 +631,10 @@ function startLeaveWalk(record) {
     delete actorElement.dataset.visual;
     return;
   }
-  const door = findDoorPoint();
-  const offsetX = door.x - (rigRect.left + rigRect.width / 2);
-  const offsetY = door.y - rigRect.bottom;
+  const door = findDoorPoint(actorElement);
+  const sceneScale = getSceneScale();
+  const offsetX = (door.x - (rigRect.left + rigRect.width / 2)) / sceneScale;
+  const offsetY = (door.y - rigRect.bottom) / sceneScale;
 
   // 影武者：絵の部分（.octo-rig）だけを複製する。ボタン・名札・id は持たない
   const ghostElement = createElementWithText("div", "octo-ghost");
@@ -621,9 +643,9 @@ function startLeaveWalk(record) {
   ghostElement.dataset.role = record.role;
   ghostElement.dataset.motion = "walk";
   ghostElement.dataset.facing = offsetX < 0 ? "left" : "right";
-  ghostElement.style.setProperty("--ghost-x", `${Math.round(rigRect.left - door.sceneRect.left)}px`);
-  ghostElement.style.setProperty("--ghost-y", `${Math.round(rigRect.top - door.sceneRect.top)}px`);
-  ghostElement.style.setProperty("--ghost-w", `${Math.round(rigRect.width)}px`);
+  ghostElement.style.setProperty("--ghost-x", `${Math.round((rigRect.left - door.sceneRect.left) / sceneScale)}px`);
+  ghostElement.style.setProperty("--ghost-y", `${Math.round((rigRect.top - door.sceneRect.top) / sceneScale)}px`);
+  ghostElement.style.setProperty("--ghost-w", `${Math.round(rigRect.width / sceneScale)}px`);
   ghostElement.style.setProperty("--walk-to-x", `${Math.round(offsetX)}px`);
   ghostElement.style.setProperty("--walk-to-y", `${Math.round(offsetY)}px`);
   ghostElement.style.setProperty("--walk-ms", `${WALK_MS}ms`);
@@ -1293,12 +1315,243 @@ function setupControls() {
   }
 }
 
+// ===== 背景の拡大・縮小と移動（見た目だけ。#scene に transform を掛ける。位置の % や cqw は変わらない） =====
+
+// 背景（街）の中で、オフィスがある範囲（横の割合）。最初とオフィスボタンではここを枠いっぱいに見せる
+const OFFICE_RANGE = { left: 256 / 1536, right: 1280 / 1536 };
+const ZOOM_STEP = 1.3; // ＋・－ボタン、ダブルクリック、ホイール1回あたりの倍率
+const DRAG_START_PX = 5; // これより動いたらドラッグ（タコのクリックと区別する）
+const viewState = { zoom: 1, panX: 0, panY: 0 };
+
+// オフィスが枠いっぱいに見える倍率（これより大きくはしない。拡大の上限）
+function getMaxZoom() {
+  const scene = byId("scene");
+  const viewport = byId("scene-viewport");
+  if (!scene || !viewport || scene.offsetWidth === 0) {
+    return 1;
+  }
+  const officeWidth = scene.offsetWidth * (OFFICE_RANGE.right - OFFICE_RANGE.left);
+  return Math.min(viewport.clientWidth / officeWidth, viewport.clientHeight / scene.offsetHeight);
+}
+
+// 街全体が枠に収まる倍率（これより小さくはしない）
+function getMinZoom() {
+  const scene = byId("scene");
+  const viewport = byId("scene-viewport");
+  if (!scene || !viewport || scene.offsetWidth === 0) {
+    return 1;
+  }
+  return Math.min(1, viewport.clientWidth / scene.offsetWidth, viewport.clientHeight / scene.offsetHeight);
+}
+
+// 画面上の大きさ ÷ 本来の大きさ（歩きの距離など、画面で測った値を #scene の中の値に直すのに使う）
+function getSceneScale() {
+  const scene = byId("scene");
+  if (!scene || scene.offsetWidth === 0) {
+    return 1;
+  }
+  return scene.getBoundingClientRect().width / scene.offsetWidth;
+}
+
+// 倍率と位置を #scene に書く（枠の外に余白が出ないように位置を詰める）
+function applyView() {
+  const scene = byId("scene");
+  const viewport = byId("scene-viewport");
+  if (!scene || !viewport) {
+    return;
+  }
+  // 背景が枠より大きい向きは、枠の外に余白が出ないように詰める。小さい向きは真ん中に置く
+  const clampPan = (pan, viewSize, sceneSize) =>
+    sceneSize <= viewSize ? (viewSize - sceneSize) / 2 : Math.min(0, Math.max(viewSize - sceneSize, pan));
+  viewState.panX = clampPan(viewState.panX, viewport.clientWidth, scene.offsetWidth * viewState.zoom);
+  viewState.panY = clampPan(viewState.panY, viewport.clientHeight, scene.offsetHeight * viewState.zoom);
+  scene.style.transform = `translate(${viewState.panX}px, ${viewState.panY}px) scale(${viewState.zoom})`;
+  viewport.dataset.zoomed = viewState.zoom > 1.001 ? "true" : "false";
+  // 上限・下限ではボタンを押せなくする
+  const zoomInButton = byId("zoom-in");
+  const zoomOutButton = byId("zoom-out");
+  if (zoomInButton) {
+    zoomInButton.disabled = viewState.zoom >= getMaxZoom() - 0.001;
+  }
+  if (zoomOutButton) {
+    zoomOutButton.disabled = viewState.zoom <= getMinZoom() + 0.001;
+  }
+}
+
+// 画面上の1点（clientX, clientY）を動かさずに倍率を変える
+function zoomAt(nextZoom, clientX, clientY) {
+  const viewport = byId("scene-viewport");
+  if (!viewport) {
+    return;
+  }
+  const rect = viewport.getBoundingClientRect();
+  const zoom = Math.min(getMaxZoom(), Math.max(getMinZoom(), nextZoom));
+  const pointX = clientX - rect.left;
+  const pointY = clientY - rect.top;
+  const worldX = (pointX - viewState.panX) / viewState.zoom;
+  const worldY = (pointY - viewState.panY) / viewState.zoom;
+  viewState.zoom = zoom;
+  viewState.panX = pointX - worldX * zoom;
+  viewState.panY = pointY - worldY * zoom;
+  applyView();
+}
+
+function zoomAtCenter(factor) {
+  const viewport = byId("scene-viewport");
+  if (!viewport) {
+    return;
+  }
+  const rect = viewport.getBoundingClientRect();
+  zoomAt(viewState.zoom * factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+}
+
+// オフィスが枠いっぱいに見える位置（最初の表示）
+function showOffice() {
+  const scene = byId("scene");
+  const viewport = byId("scene-viewport");
+  if (!scene || !viewport) {
+    return;
+  }
+  viewState.zoom = getMaxZoom();
+  viewState.panX = -scene.offsetWidth * OFFICE_RANGE.left * viewState.zoom;
+  viewState.panY = 0;
+  applyView();
+}
+
+// 街全体を見せる
+function showWholeCity() {
+  viewState.zoom = getMinZoom();
+  viewState.panX = 0;
+  viewState.panY = 0;
+  applyView();
+}
+
+// ボタン・ダブルクリック・Ctrl+ホイール（トラックパッドのピンチ）・ドラッグ・2本指ピンチ
+function setupSceneZoom() {
+  const viewport = byId("scene-viewport");
+  if (!viewport) {
+    return;
+  }
+  const zoomInButton = byId("zoom-in");
+  const zoomOutButton = byId("zoom-out");
+  const zoomResetButton = byId("zoom-reset");
+  const zoomOfficeButton = byId("zoom-office");
+  if (zoomInButton) {
+    zoomInButton.addEventListener("click", () => zoomAtCenter(ZOOM_STEP));
+  }
+  if (zoomOutButton) {
+    zoomOutButton.addEventListener("click", () => zoomAtCenter(1 / ZOOM_STEP));
+  }
+  if (zoomResetButton) {
+    zoomResetButton.addEventListener("click", showWholeCity);
+  }
+  if (zoomOfficeButton) {
+    zoomOfficeButton.addEventListener("click", showOffice);
+  }
+
+  // ふつうのホイールはページのスクロールに使う。Ctrl を押しながら（ピンチ操作を含む）なら拡大・縮小
+  viewport.addEventListener("wheel", (event) => {
+    if (!event.ctrlKey) {
+      return;
+    }
+    event.preventDefault();
+    zoomAt(viewState.zoom * (event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP), event.clientX, event.clientY);
+  }, { passive: false });
+
+  viewport.addEventListener("dblclick", (event) => {
+    if (event.target.closest(".zoom-controls, .worker-actor")) {
+      return;
+    }
+    if (viewState.zoom >= getMaxZoom() - 0.001) {
+      showWholeCity();
+    } else {
+      zoomAt(viewState.zoom * ZOOM_STEP * ZOOM_STEP, event.clientX, event.clientY);
+    }
+  });
+
+  const pointers = new Map();
+  let drag = null;
+  let pinch = null;
+  let suppressClick = false;
+  viewport.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".zoom-controls")) {
+      return;
+    }
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 1) {
+      drag = { x: event.clientX, y: event.clientY, panX: viewState.panX, panY: viewState.panY, moved: false };
+    } else if (pointers.size === 2) {
+      const [first, second] = [...pointers.values()];
+      pinch = { distance: Math.hypot(first.x - second.x, first.y - second.y), zoom: viewState.zoom };
+      drag = null;
+    }
+  });
+  viewport.addEventListener("pointermove", (event) => {
+    if (!pointers.has(event.pointerId)) {
+      return;
+    }
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pinch && pointers.size === 2) {
+      const [first, second] = [...pointers.values()];
+      const distance = Math.hypot(first.x - second.x, first.y - second.y);
+      if (pinch.distance > 0) {
+        zoomAt((pinch.zoom * distance) / pinch.distance, (first.x + second.x) / 2, (first.y + second.y) / 2);
+      }
+      return;
+    }
+    if (!drag) {
+      return;
+    }
+    const deltaX = event.clientX - drag.x;
+    const deltaY = event.clientY - drag.y;
+    if (!drag.moved) {
+      if (Math.hypot(deltaX, deltaY) < DRAG_START_PX) {
+        return;
+      }
+      drag.moved = true;
+      viewport.setPointerCapture(event.pointerId);
+      viewport.dataset.dragging = "true";
+    }
+    viewState.panX = drag.panX + deltaX;
+    viewState.panY = drag.panY + deltaY;
+    applyView();
+  });
+  const endPointer = (event) => {
+    pointers.delete(event.pointerId);
+    if (pointers.size < 2) {
+      pinch = null;
+    }
+    if (pointers.size === 0) {
+      if (drag && drag.moved) {
+        // ドラッグの終わりに来る click で、タコが選ばれないようにする
+        suppressClick = true;
+        setTimeout(() => {
+          suppressClick = false;
+        }, 0);
+      }
+      drag = null;
+      delete viewport.dataset.dragging;
+    }
+  };
+  viewport.addEventListener("pointerup", endPointer);
+  viewport.addEventListener("pointercancel", endPointer);
+  viewport.addEventListener("click", (event) => {
+    if (suppressClick) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }, true);
+  window.addEventListener("resize", applyView);
+  showOffice();
+}
+
 // ===== 起動 =====
 
 function start() {
   setupControls();
   setLightMode(loadSavedLightMode());
   setupMotionConductor();
+  setupSceneZoom();
   refreshPanels();
   setInterval(refreshElapsedTimes, ELAPSED_REFRESH_MS);
   if (IS_MOCK_MODE) {
