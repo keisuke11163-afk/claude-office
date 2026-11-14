@@ -7,6 +7,8 @@
    - 文字は textContent、要素は createElement、属性は setAttribute / dataset で入れる
    - タコ（.worker-actor）は1人1個の要素を使い回す。全部を作り直さないので、
      ほかのイベントが届いても入室・退室のアニメが途中で消えない
+   - 在席状態（data-state）と見た目（data-motion / data-visual）は分けて持つ。
+     歩く・働く・驚くなどの動きは CSS アニメに任せ、JS は data- 属性を書き換えるだけ
    ========================================================= */
 
 // ===== 設定値（docs/ui_contract.md にも同じ値を書いている） =====
@@ -15,6 +17,52 @@ const LEAVE_MS = 500; // leaving のタコを DOM から消すまでの時間（
 const MAX_LOG_ENTRIES = 50; // ログに残す件数
 const MAX_ACTORS_PER_SLOT = 4; // 1つの作業場所に絵を出す人数（超えた分は「ほか○匹」）
 const ELAPSED_REFRESH_MS = 1000; // 経過時間を書き換える間隔
+
+// ===== 照明（昼・夕・夜）の設定 =====
+// 切り替えの順番と、ボタンに出す記号・名前（docs/ui_contract.md の data-light と同じ値）
+const LIGHT_MODES = [
+  { mode: "day", icon: "☀", shortLabel: "昼", longLabel: "昼" },
+  { mode: "dusk", icon: "◐", shortLabel: "夕", longLabel: "夕方" },
+  { mode: "night", icon: "☾", shortLabel: "夜", longLabel: "夜" },
+];
+const DEFAULT_LIGHT_MODE = "day";
+const LIGHT_STORAGE_KEY = "claude-factory-light"; // 選んだ照明を覚えておく localStorage の名前
+
+// ===== タコのモーション（見た目だけ。在席状態の data-state とは別に動く） =====
+const WALK_MS = 1400; // 入口と席のあいだを歩く見た目の長さ（ENTER_MS / LEAVE_MS とは別）
+const GHOST_CLEANUP_MARGIN_MS = 200; // 退室の影武者は、歩き終わりから少し待って必ず消す
+const MOTION_TICK_MS = 1700; // モーション指揮役が動く間隔
+const MOTION_PICK_RATE = 0.35; // 1回の指揮で動きを変えるタコの割合
+const FACING_TURN_RATE = 0.2; // 待機に戻るとき、反対を向く割合（きょろきょろ）
+const DEFAULT_DOOR_PERCENT = { x: 22, y: 60 }; // CSS の --door-x / --door-y が読めないときの入口（#scene に対する %）
+const BLINK_MIN_MS = 3200; // まばたきの間隔（タコごとにこの範囲でばらす）
+const BLINK_MAX_MS = 6800;
+
+// モーションの名前（data-motion の値）と、詳細パネルに出す日本語
+const MOTION_LABELS = { idle: "待機中", walk: "歩行中", work: "作業中", react: "リアクション" };
+// モーション指揮役が選ぶ動きと重み（大きいほど選ばれやすい）
+const MOTION_WEIGHTS = [
+  { motion: "idle", weight: 5 },
+  { motion: "work", weight: 4 },
+  { motion: "react", weight: 1 },
+];
+// 役割ごとの仕事のポーズ（data-pose の値。CSS で小物と動きを描く。進捗や成否は表さない）
+const WORK_POSES = {
+  researcher: ["magnify", "book"],
+  coder: ["type", "monitor"],
+  "test-runner": ["check", "cheer"],
+  "code-reviewer": ["redpen", "tilt"],
+  "code-explainer": ["point"],
+  other: ["sort", "think"],
+};
+// リアクションの種類（data-react の値。驚く「!」・喜ぶ「♪」・困る「汗」）
+const REACTIONS = ["surprise", "joy", "trouble"];
+
+// 役割ごとのスプライトシート（まだ無いので空）。用意できたら次の形で足す：
+//   coder: { url: "/assets/octopus/coder_sheet.png", frameCount: 4, fps: 8, rowByMotion: { idle: 0, walk: 1, work: 2, react: 3 } }
+//   - 1行が1つのモーション、横にコマが frameCount 枚（2枚以上）並んだ画像。URL は server.py の STATIC_FILES にも登録する
+//   - 設定が無い役割は、今の1枚絵 + CSS の仮アニメ（呼吸・まばたき・よちよち）で動く
+const SPRITE_SHEETS = {};
 
 // 作業場所の役割（index.html の .slot と同じ並び）。ここに無い agent_type は other へ
 const ROLE_ORDER = ["researcher", "coder", "test-runner", "code-reviewer", "code-explainer", "other"];
@@ -69,7 +117,8 @@ const MANAGER_QUOTES = [
 const IS_MOCK_MODE = location.hash === "#mock" || new URLSearchParams(location.search).get("mock") === "1";
 
 // ===== 画面の状態 =====
-// 画面にいるエージェント（leaving 中も含む）：agent_id → 記録 { agent, role, state, actorElement }
+// 画面にいるエージェント（leaving 中も含む）：agent_id → 記録
+//   { agent, role（＝作業場所）, state, actorElement, motion, facing, frame }
 const workers = new Map();
 // 最後に処理したイベントの seq（古いイベントを二重に処理しないため）
 let lastSeq = -1;
@@ -80,6 +129,17 @@ let enterCount = 0;
 let leaveCount = 0;
 let eventCount = 0;
 let quoteIndex = 2;
+// いまの照明（day / dusk / night）
+let currentLightMode = DEFAULT_LIGHT_MODE;
+// 見た目用のタイマー（歩き終わり・影武者の片付け）。snapshot のときにまとめて止める
+const visualTimerIds = new Set();
+// モーション指揮役の setInterval の番号（止まっているときは null）
+let motionConductorId = null;
+// 一覧の行で強調している役割（なければ null）
+let highlightedRole = null;
+// 「動きを減らす」設定（matchMedia が無い環境では null）
+const reducedMotionQuery =
+  typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
 
 // ===== 小さな道具 =====
 
@@ -107,6 +167,28 @@ function createElementWithText(tagName, className, text) {
   if (text !== undefined) {
     element.textContent = String(text);
   }
+  return element;
+}
+
+// 配列から1つを選ぶ
+function pickRandom(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+// min 以上 max 未満の数を選ぶ
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+// 「動きを減らす」設定なら true（歩き・揺れ・モーション指揮をしない）
+function prefersReducedMotion() {
+  return Boolean(reducedMotionQuery && reducedMotionQuery.matches);
+}
+
+// 飾り用の span（読み上げない）を作る
+function createDecorationElement(className) {
+  const element = createElementWithText("span", className);
+  element.setAttribute("aria-hidden", "true");
   return element;
 }
 
@@ -235,17 +317,107 @@ function addLogEntry(logKind, timestamp, messageText, leaveReason) {
 // ===== 工房のジオラマ（タコ） =====
 
 // タコの要素を作る（クリックで詳細を表示）
+// 中身：button.worker-actor > div.octo-rig（向き・歩きの揺れ）> div.octo-body（呼吸）> img + まぶた
+//       と、役割の小物（.octo-prop）・記号（.octo-mark）・名札（.bubble）
 function createActorElement(record) {
   const actorElement = createElementWithText("button", "worker-actor");
   actorElement.type = "button";
   actorElement.dataset.agentId = record.agent.agentId;
+
+  // 本体：いまは1枚絵（スプライトシートの設定があれば applySpriteFrame で切り替える）
   const spriteImage = document.createElement("img");
+  spriteImage.className = "octo-sprite";
   spriteImage.alt = "";
   spriteImage.draggable = false;
   spriteImage.src = SPRITE_URLS[record.role];
-  actorElement.append(spriteImage, createElementWithText("span", "bubble"));
+  const bodyElement = createElementWithText("div", "octo-body");
+  bodyElement.dataset.sprite = "image";
+  bodyElement.append(spriteImage, createDecorationElement("octo-lids"));
+
+  // 向きと歩きの揺れを受け持つ枠（小物も一緒に反転する）
+  const rigElement = createElementWithText("div", "octo-rig");
+  rigElement.append(bodyElement, createDecorationElement("octo-prop"));
+
+  // 記号は左右反転させたくないので枠の外に置く
+  actorElement.append(rigElement, createDecorationElement("octo-mark"), createElementWithText("span", "bubble"));
+
+  // まばたきの間隔をタコごとにばらす（みんな同時に目を閉じないように）
+  actorElement.style.setProperty("--blink-ms", `${Math.round(randomBetween(BLINK_MIN_MS, BLINK_MAX_MS))}ms`);
+  actorElement.style.setProperty("--blink-delay", `${-Math.round(randomBetween(0, BLINK_MAX_MS))}ms`);
   actorElement.addEventListener("click", () => selectWorker(record.agent.agentId));
   return actorElement;
+}
+
+// ===== タコのモーション（data- 属性を書き換えるだけ。DOM は作り直さない） =====
+
+// スプライトシートの設定があれば本体をシート表示にし、data-frame（シートの行）を決める
+// 設定が無い役割は1枚絵のまま（data-frame は "0"）
+function applySpriteFrame(record) {
+  const { actorElement } = record;
+  const sheet = Object.hasOwn(SPRITE_SHEETS, record.role) ? SPRITE_SHEETS[record.role] : null;
+  const bodyElement = actorElement.querySelector(".octo-body");
+  if (!sheet || !bodyElement) {
+    record.frame = 0;
+    actorElement.dataset.frame = "0";
+    return;
+  }
+  const rowNumbers = Object.values(sheet.rowByMotion);
+  const rowCount = Math.max(...rowNumbers) + 1;
+  const row = Object.hasOwn(sheet.rowByMotion, record.motion) ? sheet.rowByMotion[record.motion] : 0;
+  bodyElement.dataset.sprite = "sheet";
+  bodyElement.style.setProperty("--sheet-image", `url("${sheet.url}")`);
+  bodyElement.style.setProperty("--sheet-frames", String(sheet.frameCount));
+  bodyElement.style.setProperty("--sheet-rows", String(rowCount));
+  bodyElement.style.setProperty("--sheet-row-ratio", String(rowCount > 1 ? row / (rowCount - 1) : 0));
+  bodyElement.style.setProperty("--sheet-duration", `${sheet.frameCount / sheet.fps}s`);
+  record.frame = row;
+  actorElement.dataset.frame = String(row);
+}
+
+// タコのモーションを切り替える（variant：仕事のポーズ名かリアクションの種類。省略するとランダム）
+function setActorMotion(record, motion, variant) {
+  const { actorElement } = record;
+  record.motion = motion;
+  actorElement.dataset.motion = motion;
+
+  // 仕事は役割ごとのポーズ、リアクションは記号の種類を選ぶ
+  if (motion === "work") {
+    const poses = Object.hasOwn(WORK_POSES, record.role) ? WORK_POSES[record.role] : WORK_POSES[OTHER_ROLE];
+    actorElement.dataset.pose = poses.includes(variant) ? variant : pickRandom(poses);
+  } else {
+    delete actorElement.dataset.pose;
+  }
+  if (motion === "react") {
+    actorElement.dataset.react = REACTIONS.includes(variant) ? variant : pickRandom(REACTIONS);
+  } else {
+    delete actorElement.dataset.react;
+  }
+  applySpriteFrame(record);
+
+  // 詳細パネルに出ているタコなら、モーション名だけ書き換える
+  if (record.agent.agentId === selectedAgentId) {
+    const motionElement = document.querySelector("#worker-detail .detail-motion");
+    if (motionElement) {
+      motionElement.textContent = MOTION_LABELS[motion];
+    }
+  }
+}
+
+// タコの向きを変える（right：絵のまま／left：左右反転）
+function setActorFacing(record, facing) {
+  record.facing = facing;
+  record.actorElement.dataset.facing = facing;
+}
+
+// 置いたばかりのタコの、最初のモーション（動きを減らす設定では、役割の小物が見える仕事のポーズで止める）
+function setInitialMotion(record) {
+  setActorFacing(record, "right");
+  if (prefersReducedMotion()) {
+    const poses = Object.hasOwn(WORK_POSES, record.role) ? WORK_POSES[record.role] : WORK_POSES[OTHER_ROLE];
+    setActorMotion(record, "work", poses[0]);
+  } else {
+    setActorMotion(record, "idle");
+  }
 }
 
 // タコの要素に、いまの記録（状態・名前・モデル）を書き込む
@@ -308,9 +480,10 @@ function refreshSlots() {
 // 新しいタコを作業場所に置く（entering なら一定時間後に present へ）
 function placeWorker(agent, initialState) {
   const role = findRole(agent.agentType);
-  const record = { agent, role, state: initialState, actorElement: null };
+  const record = { agent, role, state: initialState, actorElement: null, motion: "idle", facing: "right", frame: 0 };
   record.actorElement = createActorElement(record);
   writeActorInfo(record);
+  setInitialMotion(record);
 
   const slotElement = document.querySelector(`.slot[data-role="${role}"]`);
   if (slotElement) {
@@ -339,6 +512,162 @@ function removeWorkerNow(record) {
   }
 }
 
+// ===== 歩いて入退室する見た目（在席状態とは別。タイマーは snapshot でまとめて片付ける） =====
+
+// 見た目用のタイマーを登録する（clearVisualEffects でまとめて止められるように）
+function scheduleVisualTimer(callback, delayMs) {
+  const timerId = setTimeout(() => {
+    visualTimerIds.delete(timerId);
+    callback();
+  }, delayMs);
+  visualTimerIds.add(timerId);
+  return timerId;
+}
+
+// 見た目用のタイマーを全部止め、#scene-fx（退室の影武者）を空にする
+function clearVisualEffects() {
+  for (const timerId of visualTimerIds) {
+    clearTimeout(timerId);
+  }
+  visualTimerIds.clear();
+  const effectLayer = byId("scene-fx");
+  if (effectLayer) {
+    effectLayer.replaceChildren();
+  }
+}
+
+// 歩く演出をしてよいか（動きを減らす設定・工房や #scene-fx が無いときはしない）
+function canPlayWalk() {
+  return !prefersReducedMotion() && byId("scene") !== null && byId("scene-fx") !== null;
+}
+
+// 入口（扉・階段）の画面上の位置。CSS の --door-x / --door-y（#scene に対する %）を読む
+function findDoorPoint() {
+  const scene = byId("scene");
+  const sceneRect = scene.getBoundingClientRect();
+  const sceneStyle = getComputedStyle(scene);
+  const doorXPercent = parseFloat(sceneStyle.getPropertyValue("--door-x"));
+  const doorYPercent = parseFloat(sceneStyle.getPropertyValue("--door-y"));
+  const xPercent = Number.isFinite(doorXPercent) ? doorXPercent : DEFAULT_DOOR_PERCENT.x;
+  const yPercent = Number.isFinite(doorYPercent) ? doorYPercent : DEFAULT_DOOR_PERCENT.y;
+  return {
+    x: sceneRect.left + (sceneRect.width * xPercent) / 100,
+    y: sceneRect.top + (sceneRect.height * yPercent) / 100,
+    sceneRect: sceneRect,
+  };
+}
+
+// アニメの影響を外して、タコの絵（.octo-rig）の位置を測る（測ったあとの data-visual は呼び出し側が決める）
+function measureActorRig(actorElement) {
+  actorElement.dataset.visual = "measure";
+  return actorElement.querySelector(".octo-rig").getBoundingClientRect();
+}
+
+// 入室：入口から自分の席まで歩いてくる（見た目だけ。data-state は今までどおり ENTER_MS で present になる）
+function startEnterWalk(record) {
+  const { actorElement } = record;
+  if (!canPlayWalk() || actorElement.hidden || !actorElement.isConnected) {
+    return;
+  }
+  const rigRect = measureActorRig(actorElement);
+  if (rigRect.width === 0) {
+    delete actorElement.dataset.visual;
+    return;
+  }
+  // 足もと（絵の下の中央）から入口までのずれ。このずれの位置から 0 に向かって歩く
+  const door = findDoorPoint();
+  const offsetX = door.x - (rigRect.left + rigRect.width / 2);
+  const offsetY = door.y - rigRect.bottom;
+  actorElement.style.setProperty("--walk-from-x", `${Math.round(offsetX)}px`);
+  actorElement.style.setProperty("--walk-from-y", `${Math.round(offsetY)}px`);
+  actorElement.style.setProperty("--walk-ms", `${WALK_MS}ms`);
+  actorElement.dataset.visual = "walk-in";
+  // 入口が左にあれば右へ歩く
+  setActorFacing(record, offsetX > 0 ? "left" : "right");
+  setActorMotion(record, "walk");
+
+  // 歩き終わったら席で待機（途中で退室・置き直しになっていたら何もしない）
+  scheduleVisualTimer(() => {
+    if (workers.get(record.agent.agentId) !== record || actorElement.dataset.visual !== "walk-in") {
+      return;
+    }
+    delete actorElement.dataset.visual;
+    setActorMotion(record, "idle");
+  }, WALK_MS);
+}
+
+// 退室：席を立って入口まで歩いて出ていく
+// 本物のタコは今までどおり LEAVE_MS で消えるので、#scene-fx に見た目だけの「影武者」を置いて歩かせる
+function startLeaveWalk(record) {
+  const { actorElement } = record;
+  const effectLayer = byId("scene-fx");
+  if (!canPlayWalk() || actorElement.hidden || !actorElement.isConnected) {
+    return;
+  }
+  const rigElement = actorElement.querySelector(".octo-rig");
+  const rigRect = measureActorRig(actorElement);
+  if (rigRect.width === 0) {
+    delete actorElement.dataset.visual;
+    return;
+  }
+  const door = findDoorPoint();
+  const offsetX = door.x - (rigRect.left + rigRect.width / 2);
+  const offsetY = door.y - rigRect.bottom;
+
+  // 影武者：絵の部分（.octo-rig）だけを複製する。ボタン・名札・id は持たない
+  const ghostElement = createElementWithText("div", "octo-ghost");
+  ghostElement.setAttribute("aria-hidden", "true");
+  ghostElement.dataset.agentId = record.agent.agentId;
+  ghostElement.dataset.role = record.role;
+  ghostElement.dataset.motion = "walk";
+  ghostElement.dataset.facing = offsetX < 0 ? "left" : "right";
+  ghostElement.style.setProperty("--ghost-x", `${Math.round(rigRect.left - door.sceneRect.left)}px`);
+  ghostElement.style.setProperty("--ghost-y", `${Math.round(rigRect.top - door.sceneRect.top)}px`);
+  ghostElement.style.setProperty("--ghost-w", `${Math.round(rigRect.width)}px`);
+  ghostElement.style.setProperty("--walk-to-x", `${Math.round(offsetX)}px`);
+  ghostElement.style.setProperty("--walk-to-y", `${Math.round(offsetY)}px`);
+  ghostElement.style.setProperty("--walk-ms", `${WALK_MS}ms`);
+  ghostElement.append(rigElement.cloneNode(true));
+  effectLayer.append(ghostElement);
+
+  // 本物は見えなくする（DOM からは今までどおり LEAVE_MS 後に消える）
+  actorElement.dataset.visual = "ghosted";
+
+  // 歩き終わったら影武者を消す（animationend が来なくてもタイマーで必ず消す）
+  const removeGhost = () => ghostElement.remove();
+  ghostElement.addEventListener("animationend", (event) => {
+    if (event.target === ghostElement) {
+      removeGhost();
+    }
+  });
+  scheduleVisualTimer(removeGhost, WALK_MS + GHOST_CLEANUP_MARGIN_MS);
+}
+
+// 一覧の行に合わせて、工房の作業場所とその役割のタコを強調する（role が null なら外す）
+function highlightRole(role) {
+  highlightedRole = role;
+  for (const slotElement of document.querySelectorAll(".slot")) {
+    slotElement.classList.toggle("is-highlighted", slotElement.dataset.role === role);
+  }
+  for (const record of workers.values()) {
+    record.actorElement.classList.toggle("is-highlighted", record.role === role && record.state !== "leaving");
+  }
+}
+
+// 一覧の行に、hover / focus で強調する仕組みを付ける
+function attachRowHighlight(rowButton, role) {
+  const turnOn = () => highlightRole(role);
+  const turnOff = () => {
+    if (highlightedRole === role) {
+      highlightRole(null);
+    }
+  };
+  rowButton.addEventListener("mouseenter", turnOn);
+  rowButton.addEventListener("focus", turnOn);
+  rowButton.addEventListener("mouseleave", turnOff);
+  rowButton.addEventListener("blur", turnOff);
+}
+
 // ===== 右側の一覧・詳細・数字 =====
 
 // 「工房の仲間たち」：役割ごとに1行（その役割の最初の在席者を代表にする）
@@ -354,6 +683,7 @@ function renderCrewList() {
     const rowButton = createElementWithText("button", "crew-row");
     rowButton.type = "button";
     rowButton.dataset.role = role;
+    attachRowHighlight(rowButton, role);
 
     const iconImage = document.createElement("img");
     iconImage.alt = "";
@@ -383,6 +713,10 @@ function renderCrewList() {
     return rowButton;
   });
   listElement.replaceChildren(...rows);
+  // 行を作り直しても、強調中の役割はそのまま（新しく来たタコにも付ける）
+  if (highlightedRole !== null) {
+    highlightRole(highlightedRole);
+  }
 }
 
 // 「作業員の詳細」：選んでいるエージェントの情報
@@ -406,6 +740,7 @@ function renderWorkerDetail() {
     ["モデル", record.agent.model, ""],
     ["経過", formatElapsed(record.agent.startedAt), "detail-elapsed"],
     ["入室", extractClockText(record.agent.startedAt), ""],
+    ["動き", MOTION_LABELS[record.motion] || MOTION_LABELS.idle, "detail-motion"],
   ];
   for (const [labelText, valueText, className] of rows) {
     const valueElement = createElementWithText("dd", className, valueText);
@@ -473,6 +808,8 @@ function applySnapshot(snapshotData) {
   if (!isPlainObject(snapshotData)) {
     return;
   }
+  // 歩きの見た目（影武者・タイマー）を先に片付ける
+  clearVisualEffects();
   for (const record of Array.from(workers.values())) {
     removeWorkerNow(record);
   }
@@ -499,6 +836,7 @@ function applyEnter(enterData) {
     return;
   }
   const existingRecord = workers.get(agent.agentId);
+  let enteredRecord = null; // 新しく置いたタコ（二重の enter なら null のまま）
   if (existingRecord && existingRecord.state !== "leaving" && existingRecord.role === findRole(agent.agentType)) {
     // 二重の enter：タコはそのまま、情報だけ書き換える
     existingRecord.agent = agent;
@@ -508,12 +846,16 @@ function applyEnter(enterData) {
     if (existingRecord) {
       removeWorkerNow(existingRecord);
     }
-    placeWorker(agent, "entering");
+    enteredRecord = placeWorker(agent, "entering");
   }
   enterCount += 1;
   eventCount += 1;
   addLogEntry("enter", enterData.time, `${agent.roleLabel} が入室しました（${agent.model}）`);
   refreshPanels();
+  // 見た目：入口から席まで歩いてくる（席の並びが決まった refreshPanels の後で測る）
+  if (enteredRecord) {
+    startEnterWalk(enteredRecord);
+  }
 }
 
 // leave：退室。leaving にして、アニメが終わったらタコを消す
@@ -537,7 +879,9 @@ function applyLeave(leaveData) {
     leaveData.reason
   );
 
+  let startedLeaving = false; // この leave で退室を始めたか
   if (record && record.state !== "leaving") {
+    startedLeaving = true;
     record.state = "leaving";
     writeActorInfo(record);
     setTimeout(() => {
@@ -549,6 +893,10 @@ function applyLeave(leaveData) {
     }, LEAVE_MS);
   }
   refreshPanels();
+  // 見た目：席を立って入口へ歩いていく（data-state の切り替えとは別）
+  if (startedLeaving) {
+    startLeaveWalk(record);
+  }
 }
 
 // update（data.kind は "model"）：在席中の人だけモデル表示を更新する
@@ -571,6 +919,135 @@ function applyUpdate(updateData) {
   eventCount += 1;
   addLogEntry("update", updateData.time, `${record.agent.roleLabel} のモデル: ${newModel}`);
   refreshPanels();
+}
+
+// ===== モーション指揮役（setInterval 1本で、在席中のタコの一部だけ動きを変える） =====
+
+// 重み付きで動きを1つ選ぶ
+function pickWeightedMotion() {
+  const totalWeight = MOTION_WEIGHTS.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const item of MOTION_WEIGHTS) {
+    roll -= item.weight;
+    if (roll < 0) {
+      return item.motion;
+    }
+  }
+  return MOTION_WEIGHTS[0].motion;
+}
+
+// 指揮してよいタコか（在席中・絵が出ている・歩いていない）
+function canConductMotion(record) {
+  const { actorElement } = record;
+  return record.state === "present" && !actorElement.hidden && actorElement.dataset.visual === undefined;
+}
+
+// 1回分の指揮（pickRate はテストで 1 にすると、対象のタコ全員の動きを変える）
+function runMotionTick(pickRate = MOTION_PICK_RATE) {
+  if (document.hidden || prefersReducedMotion()) {
+    return;
+  }
+  for (const record of workers.values()) {
+    if (!canConductMotion(record) || Math.random() >= pickRate) {
+      continue;
+    }
+    const nextMotion = pickWeightedMotion();
+    // 待機に戻るときは、ときどき反対を向く
+    if (nextMotion === "idle" && Math.random() < FACING_TURN_RATE) {
+      setActorFacing(record, record.facing === "left" ? "right" : "left");
+    }
+    setActorMotion(record, nextMotion);
+  }
+}
+
+// 指揮を始める（タブが見えていて、動きを減らす設定でないときだけ）
+function startMotionConductor() {
+  if (motionConductorId !== null || document.hidden || prefersReducedMotion()) {
+    return;
+  }
+  motionConductorId = setInterval(() => runMotionTick(), MOTION_TICK_MS);
+}
+
+// 指揮を止める
+function stopMotionConductor() {
+  if (motionConductorId !== null) {
+    clearInterval(motionConductorId);
+    motionConductorId = null;
+  }
+}
+
+// タブの表示・非表示と「動きを減らす」設定の変化に合わせて、指揮を止めたり再開したりする
+function setupMotionConductor() {
+  const restartConductor = () => {
+    stopMotionConductor();
+    startMotionConductor();
+  };
+  document.addEventListener("visibilitychange", restartConductor);
+  if (reducedMotionQuery && typeof reducedMotionQuery.addEventListener === "function") {
+    reducedMotionQuery.addEventListener("change", restartConductor);
+  }
+  startMotionConductor();
+}
+
+// 指揮してよいタコ全員を、同じモーションにする（モックの確認用）
+function setMotionForAll(motion) {
+  for (const record of workers.values()) {
+    if (canConductMotion(record)) {
+      setActorMotion(record, motion);
+    }
+  }
+}
+
+// ===== 照明（昼・夕・夜） =====
+
+// 照明のモード名から LIGHT_MODES の位置を探す（無ければ -1）
+function findLightModeIndex(mode) {
+  return LIGHT_MODES.findIndex((item) => item.mode === mode);
+}
+
+// 照明を切り替える：#scene の data-light と、互換のための .night、ボタンの文字と aria-label
+function setLightMode(mode) {
+  const modeIndex = findLightModeIndex(mode);
+  if (modeIndex < 0) {
+    return;
+  }
+  const currentMode = LIGHT_MODES[modeIndex];
+  const nextMode = LIGHT_MODES[(modeIndex + 1) % LIGHT_MODES.length];
+  currentLightMode = currentMode.mode;
+
+  const scene = byId("scene");
+  if (scene) {
+    scene.dataset.light = currentMode.mode;
+    scene.classList.toggle("night", currentMode.mode === "night");
+  }
+  const lightToggle = byId("light-toggle");
+  if (lightToggle) {
+    lightToggle.textContent = `${currentMode.icon} ${currentMode.shortLabel} → ${nextMode.shortLabel}にする`;
+    lightToggle.setAttribute("aria-label", `照明：いまは${currentMode.longLabel}。押すと${nextMode.longLabel}にします`);
+  }
+
+  // 選んだ照明を覚えておく（保存できない設定のブラウザでも、表示はそのまま動く）
+  try {
+    localStorage.setItem(LIGHT_STORAGE_KEY, currentMode.mode);
+  } catch (error) {
+    // 保存できなくても困らないので何もしない
+  }
+}
+
+// 昼 → 夕 → 夜 → 昼 の順に切り替える
+function cycleLightMode() {
+  const modeIndex = Math.max(0, findLightModeIndex(currentLightMode));
+  setLightMode(LIGHT_MODES[(modeIndex + 1) % LIGHT_MODES.length].mode);
+}
+
+// 前に選んだ照明を読む（無い・読めないときは昼）
+function loadSavedLightMode() {
+  try {
+    const savedMode = localStorage.getItem(LIGHT_STORAGE_KEY);
+    return findLightModeIndex(savedMode) >= 0 ? savedMode : DEFAULT_LIGHT_MODE;
+  } catch (error) {
+    return DEFAULT_LIGHT_MODE;
+  }
 }
 
 // ===== 経過時間の更新（1秒ごと） =====
@@ -668,10 +1145,6 @@ const MOCK_AGENT_TYPES = [
   { agentType: "Explore", roleLabel: "Explore" },
 ];
 
-function pickRandom(items) {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
 function startMockMode() {
   document.body.dataset.mode = "mock";
   setConnectionStatus("open", "モック表示中");
@@ -682,9 +1155,9 @@ function startMockMode() {
 
   const mockState = { seq: 0, nextAgentNumber: 1 };
 
-  // 偽のエージェントを1人作る（started_at は現地時刻。何分前に入室したかを指定できる）
-  function makeMockAgent(minutesAgo) {
-    const agentType = pickRandom(MOCK_AGENT_TYPES);
+  // 偽のエージェントを1人作る（started_at は現地時刻。何分前に入室したか・役割を指定できる）
+  function makeMockAgent(minutesAgo, chosenAgentType) {
+    const agentType = chosenAgentType || pickRandom(MOCK_AGENT_TYPES);
     const startedDate = new Date(Date.now() - minutesAgo * 60 * 1000);
     const agentNumber = mockState.nextAgentNumber;
     mockState.nextAgentNumber += 1;
@@ -742,8 +1215,11 @@ function startMockMode() {
     });
   }
 
-  // 最初は数人が少し前から在席している
-  applySnapshot({ seq: 0, agents: [makeMockAgent(3), makeMockAgent(12), makeMockAgent(65)] });
+  // 最初は各役割（other も含めて6つ）に1匹ずつ、少し前から在席している
+  const firstAgents = MOCK_AGENT_TYPES.slice(0, ROLE_ORDER.length).map((agentType, index) =>
+    makeMockAgent(3 + index * 11, agentType)
+  );
+  applySnapshot({ seq: 0, agents: firstAgents });
   addLogEntry("system", null, "モック表示を開始しました（偽のイベントです）");
 
   const enterButton = byId("mock-enter");
@@ -753,6 +1229,24 @@ function startMockMode() {
   }
   if (leaveButton) {
     leaveButton.addEventListener("click", mockLeave);
+  }
+
+  // 照明・モーションを確かめるボタン（サーバー無しで全部の動きを見られるように）
+  const mockButtonActions = {
+    "mock-light": cycleLightMode,
+    "mock-work": () => setMotionForAll("work"),
+    "mock-react": () => setMotionForAll("react"),
+    // 1匹が歩いて出ていき、別の1匹が歩いて入ってくる
+    "mock-walk": () => {
+      mockLeave();
+      mockEnter();
+    },
+  };
+  for (const [buttonId, action] of Object.entries(mockButtonActions)) {
+    const button = byId(buttonId);
+    if (button) {
+      button.addEventListener("click", action);
+    }
   }
 
   setInterval(() => {
@@ -767,7 +1261,7 @@ function startMockMode() {
   }, MOCK_STEP_INTERVAL_MS);
 }
 
-// ===== ボタン類（ページ内リンク・昼夜・工場長のひとこと） =====
+// ===== ボタン類（ページ内リンク・照明・工場長のひとこと） =====
 
 function setupControls() {
   for (const navItem of document.querySelectorAll(".nav-item")) {
@@ -783,13 +1277,10 @@ function setupControls() {
     });
   }
 
+  // 照明：昼 → 夕 → 夜 → 昼（#scene の data-light と .night を書き換える）
   const lightToggle = byId("light-toggle");
-  const scene = byId("scene");
-  if (lightToggle && scene) {
-    lightToggle.addEventListener("click", () => {
-      const isNight = scene.classList.toggle("night");
-      lightToggle.textContent = isNight ? "☀ 昼にする" : "☾ 夜にする";
-    });
+  if (lightToggle) {
+    lightToggle.addEventListener("click", cycleLightMode);
   }
 
   const quoteButton = byId("next-quote");
@@ -806,6 +1297,8 @@ function setupControls() {
 
 function start() {
   setupControls();
+  setLightMode(loadSavedLightMode());
+  setupMotionConductor();
   refreshPanels();
   setInterval(refreshElapsedTimes, ELAPSED_REFRESH_MS);
   if (IS_MOCK_MODE) {

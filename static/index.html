@@ -26,21 +26,36 @@
   <div class="stage-column">
     <header class="topbar">
       <div class="crumb">THE LITTLE FACTORY <span>/</span> 工房</div>
-      <div class="top-actions"><span class="chip" id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</span><button class="day-toggle" type="button" id="light-toggle" aria-label="昼夜の切り替え">☾ 夜にする</button></div>
+      <div class="top-actions"><span class="chip" id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</span><button class="day-toggle" type="button" id="light-toggle" aria-label="照明：いまは昼。押すと夕方にします">☀ 昼 → 夕にする</button></div>
     </header>
     <main>
       <div class="heading"><div><span class="eyebrow">WELCOME TO THE WORKSHOP</span><h1>小さなタコたちの開発工房。</h1><p>入室も退室も、ちょっとした物語になる場所。</p></div><span class="heading-stamp">✳<br>OPEN</span></div>
       <div class="content-grid">
         <section class="workshop" id="workshop" aria-label="工房のジオラマ">
           <div class="scene-top"><span>✿ ISOMETRIC WORKSHOP</span><span id="scene-population">0 WORKERS</span></div>
-          <div class="scene" id="scene">
+          <div class="scene" id="scene" data-light="day">
             <img class="background-art" src="/assets/workshop_background.png" alt="タコのための小さな二階建て工房。木製家具や植物、石畳、ピンク色の屋根のあるジオラマ。" draggable="false">
+            <div class="light-layer" id="light-layer" aria-hidden="true">
+              <div class="light-tint" data-tint="dusk"></div>
+              <div class="light-tint" data-tint="night"></div>
+              <div class="light-moon"></div>
+              <span class="light-spot" data-light-kind="window" data-spot="window-left-1"></span>
+              <span class="light-spot" data-light-kind="window" data-spot="window-left-2"></span>
+              <span class="light-spot" data-light-kind="window" data-spot="window-arch"></span>
+              <span class="light-spot" data-light-kind="window" data-spot="window-small"></span>
+              <span class="light-spot" data-light-kind="lantern" data-spot="lantern-1"></span>
+              <span class="light-spot" data-light-kind="lantern" data-spot="lantern-2"></span>
+              <span class="light-spot" data-light-kind="candle" data-spot="candle-1"></span>
+              <span class="light-spot" data-light-kind="candle" data-spot="candle-2"></span>
+              <span class="light-spot" data-light-kind="door" data-spot="door"></span>
+            </div>
             <div class="slot" data-role="researcher" aria-label="調査担当の作業場所"></div>
             <div class="slot" data-role="coder" aria-label="コーディング担当の作業場所"></div>
             <div class="slot" data-role="test-runner" aria-label="テスト担当の作業場所"></div>
             <div class="slot" data-role="code-reviewer" aria-label="レビュー担当の作業場所"></div>
             <div class="slot" data-role="code-explainer" aria-label="解説担当の作業場所"></div>
             <div class="slot" data-role="other" aria-label="その他の作業場所"></div>
+            <div class="scene-fx" id="scene-fx" aria-hidden="true"></div>
             <div class="scene-empty" id="scene-empty">作業員が来るのを待っています…</div>
           </div>
           <div class="scene-bottom"><span>☼ ちいさな世界の、大きなお仕事。</span><span>タコを選ぶと詳細を表示</span></div>
@@ -52,7 +67,7 @@
       </div>
       <div class="summary-strip" aria-label="工房の統計"><div><span>◌ 在室中</span><strong id="summary-present">0<small> 匹</small></strong></div><div><span>↳ 入室</span><strong id="summary-enter">0<small> 件</small></strong></div><div><span>↰ 退室</span><strong id="summary-leave">0<small> 件</small></strong></div><div><span>✳ 工場長の自己認識</span><strong>0<small> %</small></strong></div></div>
       <div class="bottom-grid"><section class="panel journal" id="journal"><div class="panel-head"><div><span class="eyebrow">LIVE JOURNAL</span><h2>業務日誌</h2></div><span class="pill">最新50件</span></div><ol id="activity-log" aria-live="polite" aria-relevant="additions"></ol></section>
-      <section class="panel inspector"><div class="panel-head"><div><span class="eyebrow">CHARACTER INSPECTOR</span><h2>作業員の詳細</h2></div></div><div id="worker-detail" class="worker-detail"><p>工房のタコか、右側の仲間たちを選んでね。</p></div><div class="mock-controls" id="mock-controls" hidden><button type="button" id="mock-enter">＋ デモ入室</button><button type="button" id="mock-leave">− デモ退室</button></div></section></div>
+      <section class="panel inspector"><div class="panel-head"><div><span class="eyebrow">CHARACTER INSPECTOR</span><h2>作業員の詳細</h2></div></div><div id="worker-detail" class="worker-detail"><p>工房のタコか、右側の仲間たちを選んでね。</p></div><div class="mock-controls" id="mock-controls" hidden><button type="button" id="mock-enter">＋ デモ入室</button><button type="button" id="mock-leave">− デモ退室</button><button type="button" id="mock-light">◐ 照明を切り替え</button><button type="button" id="mock-work">⚒ 全員に仕事モーション</button><button type="button" id="mock-react">! 全員にリアクション</button><button type="button" id="mock-walk">⇄ 歩いて入退室を試す</button></div></section></div>
     </main>
     <footer class="footer">CLAUDE FACTORY · A VERY SMALL WORKPLACE WITH VERY BIG IDEAS</footer>
   </div>
