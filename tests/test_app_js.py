@@ -18,14 +18,15 @@ TEST_PAGE_PATH = PROJECT_ROOT / "tests" / "js" / "app_test.html"
 BROWSER_CANDIDATE_PATHS = (
     Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
     Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+    Path("/usr/bin/google-chrome"),
 )
 
 # ブラウザの実行を待つ上限（秒）
 BROWSER_TIMEOUT_SECONDS = 60
-# 仮想時間（ミリ秒）。テスト内の待ち（700ms × 数回）が進むように十分な時間を与える
-VIRTUAL_TIME_BUDGET_MS = 5000
+# 仮想時間（ミリ秒）。テスト内の待ち（700ms × 7回 + 歩きの見た目を待つ 1.9 秒 × 2回ほど）が進むように十分な時間を与える
+VIRTUAL_TIME_BUDGET_MS = 15000
 # app_test.js に登録しているテストの数（増減したらここも直す）
-EXPECTED_TEST_COUNT = 11
+EXPECTED_TEST_COUNT = 33
 
 
 def find_browser_paths():
@@ -102,6 +103,18 @@ class AppJsBrowserTest(unittest.TestCase):
             f"PASS {EXPECTED_TEST_COUNT}",
             msg=f"app.js の確認に失敗があります: {self.result_text}",
         )
+
+
+class AppTestPageSyncTest(unittest.TestCase):
+    """tests/js/app_test.html の body が static/index.html の body と同じか（コピーの直し忘れ防止）"""
+
+    def test_body_matches_index_html(self):
+        index_text = (PROJECT_ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        test_page_text = TEST_PAGE_PATH.read_text(encoding="utf-8")
+        index_body = re.search(r"<body[^>]*>(.*)</body>", index_text, re.DOTALL).group(1).strip()
+        copied_body = re.search(r"<!-- ここから[^>]*-->\n(.*)\n<!-- ここまで -->", test_page_text, re.DOTALL)
+        self.assertIsNotNone(copied_body, "app_test.html に「ここから」「ここまで」の印がありません")
+        self.assertEqual(copied_body.group(1).strip(), index_body, "app_test.html の body を index.html に合わせてください")
 
 
 if __name__ == "__main__":

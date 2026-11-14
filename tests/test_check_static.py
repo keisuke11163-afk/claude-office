@@ -20,16 +20,9 @@ _spec = importlib.util.spec_from_file_location("check_static", CHECK_STATIC_PATH
 check_static = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check_static)
 
-# index.html に必ず必要な template（docs/ui_contract.md と同じ7つ）
-ALL_REQUIRED_TEMPLATE_IDS = (
-    "cat-researcher",
-    "cat-coder",
-    "cat-test-runner",
-    "cat-code-reviewer",
-    "cat-code-explainer",
-    "cat-generic",
-    "cat-absent",
-)
+# index.html に必ず必要な要素の id と作業場所（docs/ui_contract.md と同じ）
+ALL_REQUIRED_ELEMENT_IDS = check_static.REQUIRED_ELEMENT_IDS
+ALL_REQUIRED_SLOT_ROLES = check_static.REQUIRED_SLOT_ROLES
 
 # template の中身の初期値（違反なしの小さな SVG）
 SAFE_CAT_SVG = '<svg viewBox="0 0 64 64"><circle cx="32" cy="36" r="20" fill="#b3b9b7"/></svg>'
@@ -45,20 +38,20 @@ SERVER_TEXT_WITH_IMAGE = (
 )
 
 
-def build_index_html(cat_inner_by_id=None, omit_ids=(), extra_body=""):
-    """違反のない index.html を作る。cat_inner_by_id で template の中身を差し替え、omit_ids の template は作らない"""
+def build_index_html(cat_inner_by_id=None, omit_ids=(), omit_roles=(), extra_body=""):
+    """違反のない index.html を作る。
+    cat_inner_by_id を渡すと template を作ってその中身にする。omit_ids の要素・omit_roles の作業場所は作らない"""
     cat_inner_by_id = cat_inner_by_id or {}
-    template_parts = []
-    for template_id in ALL_REQUIRED_TEMPLATE_IDS:
-        if template_id in omit_ids:
-            continue
-        inner_svg = cat_inner_by_id.get(template_id, SAFE_CAT_SVG)
-        template_parts.append(f'<template id="{template_id}">{inner_svg}</template>')
+    element_parts = [f'<div id="{element_id}"></div>' for element_id in ALL_REQUIRED_ELEMENT_IDS if element_id not in omit_ids]
+    slot_parts = [f'<div class="slot" data-role="{role}"></div>' for role in ALL_REQUIRED_SLOT_ROLES if role not in omit_roles]
+    template_parts = [
+        f'<template id="{template_id}">{inner_svg}</template>' for template_id, inner_svg in cat_inner_by_id.items()
+    ]
     return (
         "<!doctype html><html lang='ja'><head><meta charset='utf-8'><title>t</title>"
         "<link rel='stylesheet' href='/style.css'>"
         "<script src='/app.js' defer></script></head>"
-        "<body>" + extra_body + "".join(template_parts) + "</body></html>"
+        "<body>" + extra_body + "".join(element_parts + slot_parts + template_parts) + "</body></html>"
     )
 
 
@@ -109,6 +102,7 @@ class CheckStaticJsNgTest(unittest.TestCase):
         ('setTimeout("…")', 'setTimeout("alert(1)", 100);', "setTimeout / setInterval に文字列は渡せません"),
         ('setInterval("…")', 'setInterval("alert(1)", 100);', "setTimeout / setInterval に文字列は渡せません"),
         ("外部 URL", 'const imageUrl = "https://example.com/a.png";', "外部の URL が書かれています"),
+        ("STATIC_FILES に無い画像", 'const imageUrl = "/images/x.png";', "STATIC_FILES に登録されていない URL です: /images/x.png"),
     )
 
     def test_each_forbidden_js_pattern_is_ng(self):
@@ -143,7 +137,7 @@ class CheckStaticHtmlNgTest(unittest.TestCase):
 
 
 class CheckStaticTemplateNgTest(unittest.TestCase):
-    """異常系：index.html の template（キャラクター）の中の決まり違反と、必須 template の欠け"""
+    """異常系：index.html の template の中の決まり違反と、必須の要素・作業場所の欠け"""
 
     CASES = (
         ("id", '<svg><circle id="head1" cx="1" cy="1" r="1"/></svg>', "キャラクターの中の <circle> に id は付けられません"),
@@ -161,13 +155,28 @@ class CheckStaticTemplateNgTest(unittest.TestCase):
                 self.assertEqual(exit_code, 1, msg=output)
                 self.assertIn(expected_message, output)
 
-    def test_missing_required_template_is_ng(self):
-        for template_id in ALL_REQUIRED_TEMPLATE_IDS:
-            with self.subTest(template_id=template_id):
-                index_text = build_index_html(omit_ids=(template_id,))
+    def test_missing_required_element_is_ng(self):
+        for element_id in ALL_REQUIRED_ELEMENT_IDS:
+            with self.subTest(element_id=element_id):
+                index_text = build_index_html(omit_ids=(element_id,))
                 exit_code, output = run_check({"index.html": index_text})
                 self.assertEqual(exit_code, 1, msg=output)
-                self.assertIn(f'template id="{template_id}" がありません', output)
+                self.assertIn(f'id="{element_id}" の要素がありません', output)
+
+    def test_missing_required_slot_is_ng(self):
+        for role in ALL_REQUIRED_SLOT_ROLES:
+            with self.subTest(role=role):
+                index_text = build_index_html(omit_roles=(role,))
+                exit_code, output = run_check({"index.html": index_text})
+                self.assertEqual(exit_code, 1, msg=output)
+                self.assertIn(f'data-role="{role}"> がありません', output)
+
+    def test_id_inside_template_does_not_count_as_required_element(self):
+        # template の中の id は画面に出ないので、必須の要素として数えない（id 自体も NG）
+        index_text = build_index_html(omit_ids=("scene",), cat_inner_by_id={"t1": '<div id="scene"></div>'})
+        exit_code, output = run_check({"index.html": index_text})
+        self.assertEqual(exit_code, 1, msg=output)
+        self.assertIn('id="scene" の要素がありません', output)
 
     def test_standalone_svg_is_treated_as_template(self):
         # .svg ファイルはまるごと template と同じ扱い（image は使えない）
@@ -220,6 +229,12 @@ class CheckStaticBoundaryTest(unittest.TestCase):
         })
         self.assertEqual(exit_code, 0, msg=output)
 
+    def test_registered_js_url_and_stream_are_ok(self):
+        # 登録済みの /style.css と、拡張子の無い /stream は JS に書いても OK
+        js_text = 'const a = "/style.css";\nconst source = new EventSource("/stream");\n'
+        exit_code, output = run_check({"app.js": js_text})
+        self.assertEqual(exit_code, 0, msg=output)
+
     def test_folder_without_index_html_skips_template_check(self):
         exit_code, output = run_check({"style.css": "body { color: red; }\n"})
         self.assertEqual(exit_code, 0, msg=output)
@@ -253,6 +268,26 @@ class CheckStaticServerOptionTest(unittest.TestCase):
         exit_code_default, output_default = run_check({"index.html": index_text})
         self.assertEqual(exit_code_default, 1, msg=output_default)
         self.assertIn("STATIC_FILES に登録されていない URL です: /images/x.png", output_default)
+
+
+class StaticFilesExistTest(unittest.TestCase):
+    """server.py の STATIC_FILES に登録したファイルが、static/ に全部あるか"""
+
+    def test_every_registered_file_exists(self):
+        import ast
+
+        source_text = (PROJECT_ROOT / "server.py").read_text(encoding="utf-8")
+        for node in ast.walk(ast.parse(source_text)):
+            if isinstance(node, ast.Assign) and any(
+                isinstance(target, ast.Name) and target.id == "STATIC_FILES" for target in node.targets
+            ):
+                static_files = ast.literal_eval(node.value)
+                break
+        else:
+            self.fail("server.py に STATIC_FILES が見つかりません")
+        for url_path, (file_name, _content_type) in static_files.items():
+            with self.subTest(url=url_path):
+                self.assertTrue((REAL_STATIC_FOLDER / file_name).is_file(), f"{file_name} がありません")
 
 
 if __name__ == "__main__":

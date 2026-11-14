@@ -1,719 +1,699 @@
+:root{color-scheme:dark;--ink:#f9ede1;--muted:#dfc7c2;--panel:#3e3044;--panel2:#49364b;--edge:#856274;--accent:#ffa776;--gold:#ffe0a3;--lime:#a7e6aa;--shadow:#1c1625}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;color:var(--ink);background:radial-gradient(ellipse at 47% -12%,#665171,#291f34 70%);line-height:1.55}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #a9f2e1;outline-offset:3px}.layout{display:grid;grid-template-columns:204px minmax(0,1fr);max-width:1800px;min-height:100vh;margin:auto}.rail{position:sticky;top:0;display:flex;flex-direction:column;align-self:start;min-height:100vh;padding:26px 17px;background:linear-gradient(#302536,#362a3d);border-right:1px solid #684c63}.logo{display:flex;align-items:center;gap:10px;margin-bottom:40px}.logo-mark{width:45px;height:45px;border-radius:12px;background:#f19a70;color:#462e39;box-shadow:0 0 25px #ff94754a;display:grid;place-items:center;font-size:27px}.logo b{display:block;font-family:Georgia,"Yu Mincho",serif;font-size:21px;line-height:1.02}.logo small{display:block;font-size:8px;font-weight:800;letter-spacing:1.2px;color:#e4baae;margin-top:6px}.rail-caption{color:#d6a9a9;font-size:10px;font-weight:900;letter-spacing:1.5px;margin:8px 0 13px}.nav{display:grid;gap:7px;margin-bottom:31px}.nav-item{border:1px solid transparent;border-radius:10px;background:transparent;color:#e9d8db;padding:12px 14px;font-weight:800;text-align:left}.nav-item span{margin-left:9px}.nav-item.chosen,.nav-item:hover{background:#b66b63;color:#fff;border-color:#f5bd95;box-shadow:0 3px 14px #f69d6a33}.rail-card{padding:16px;border-radius:14px;border:1px solid #7d5d6e;background:#443449;display:grid;gap:4px}.rail-label{font-size:11px;color:#e2c7cf}.rail-card strong{font-size:28px;line-height:1.2;color:#ffe5c2;margin-bottom:12px}.rail-card strong:last-child{margin-bottom:0}.rail-card strong small{font-size:13px}.rail-message{margin-top:30px;border-radius:13px;background:#4e3d4c;padding:14px;color:#f7d5bf;font-size:12px}.asterisk{color:#ffc897;font-size:19px}.rail-message p{margin:7px 0}.rail-foot{margin-top:auto;padding-top:24px;font-size:9px;letter-spacing:1px;color:#bb99a6}.stage-column{min-width:0}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:73px;padding:12px 25px;border-bottom:1px solid #735469;background:#35283eaa}.crumb{font-size:11px;font-weight:900;letter-spacing:1px;color:#e6c4bf}.crumb span{padding:0 7px;color:#b2899d}.top-actions{display:flex;gap:9px;align-items:center}#connection-status{font-size:11px;font-weight:850;border-radius:30px;padding:8px 12px;border:1px solid #917c83;background:#4c3e4e;color:#fff0e6}#connection-status::before{content:'●';color:#ffd38f;margin-right:7px}#connection-status[data-connection="open"]{border-color:#83b48f;color:#d4ffd6}#connection-status[data-connection="open"]::before{color:#92ee9c}#connection-status[data-connection="closed"]{border-color:#e49ca1;color:#ffd5d5}#connection-status[data-connection="reconnecting"]{color:#ffdf9a}.day-toggle{border:1px solid #8d7184;border-radius:10px;background:#5a4051;color:#ffe8dc;padding:8px 12px;font-size:11px;font-weight:800}main{padding:22px clamp(12px,2.3vw,34px) 34px}.heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:21px}.eyebrow{font-size:9px;letter-spacing:1.7px;font-weight:900;color:#f6bd9c}.heading h1{font-family:Georgia,"Yu Mincho",serif;font-size:clamp(22px,2.5vw,37px);font-weight:900;line-height:1.3;letter-spacing:-.6px;margin:4px 0}.heading p{margin:4px 0;font-size:12px;color:#eacdd0}.heading-stamp{width:58px;height:58px;flex:none;border-radius:50%;border:2px dashed #dca67e;display:grid;place-content:center;text-align:center;line-height:1;font-weight:900;color:#f4c8a6;transform:rotate(10deg)}.content-grid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:15px}.workshop{min-width:0;background:#776778;border:1px solid #b18b8f;border-radius:17px;box-shadow:0 20px 55px #1d13294d;overflow:hidden}.scene-top,.scene-bottom{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#4d394d;padding:9px 14px;color:#f4dfca;font-size:10px;font-weight:900;letter-spacing:.9px}.scene{position:relative;isolation:isolate;width:100%;aspect-ratio:1/1;background:#51465b;overflow:hidden}.background-art{display:block;width:100%;height:100%;object-fit:cover;user-select:none}.scene::after{content:'';pointer-events:none;position:absolute;inset:0;box-shadow:inset 0 0 25px #24213533}.slot{position:absolute;display:flex;align-items:end;gap:0;z-index:2;transform:translate(-50%,-50%)}.slot[data-role="researcher"]{left:41%;top:40%}.slot[data-role="coder"]{left:31%;top:65%}.slot[data-role="test-runner"]{left:57%;top:59%}.slot[data-role="code-reviewer"]{left:61%;top:43%}.slot[data-role="code-explainer"]{left:48%;top:76%}.slot[data-role="other"]{left:21%;top:57%}.worker-actor{border:0;background:transparent;position:relative;padding:0;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 6px 4px #2f19267d);transition:transform .2s,opacity .2s;min-width:42px}.worker-actor img{width:clamp(48px,5vw,82px);height:auto;image-rendering:pixelated;animation:floaty 3s ease-in-out infinite}.worker-actor:hover{transform:translateY(-5px)}.worker-actor.selected img{filter:drop-shadow(0 0 8px #ffe2a6)}.worker-actor .bubble{border:1px solid #eac3a2;border-radius:7px;padding:2px 7px;background:#3a273be8;color:#fff3df;max-width:100px;font-size:9px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 7px #29142599}.worker-actor[data-state="leaving"]{animation:leave .5s ease-in forwards}.worker-actor[data-state="entering"]{animation:enter .5s ease-out both}.scene-empty{display:none;position:absolute;bottom:8%;left:50%;transform:translateX(-50%);padding:10px 13px;color:#624a47;background:#fff0d9eb;border-radius:12px;font-weight:900;font-size:11px;text-align:center}.scene-empty.visible{display:block}.panel{background:linear-gradient(150deg,#4c3a4e,#3a2d43);border:1px solid #89667a;box-shadow:0 7px 22px #261a2c44;border-radius:16px;padding:17px;min-width:0}.right-panels{display:flex;flex-direction:column;gap:13px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:9px}.panel h2{font-size:16px;margin:3px 0 13px;color:#fff1e3}.pill{font-size:10px;font-weight:900;border-radius:30px;color:#ffe6c7;border:1px solid #aa7d79;padding:5px 9px;white-space:nowrap}.worker-list{display:flex;flex-direction:column;gap:7px;max-height:520px;overflow:auto}.crew-row{display:flex;align-items:center;gap:9px;border:1px solid #866578;border-radius:9px;padding:8px;min-width:0;background:#594553;color:#fff0e4;text-align:left;width:100%}.crew-row:hover,.crew-row.active{border-color:#ffd096;background:#715261}.crew-row img{width:39px;height:36px;object-fit:contain;image-rendering:pixelated;flex:none}.crew-info{flex:1;min-width:0}.crew-info b,.crew-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.crew-info b{font-size:11px}.crew-info small{font-size:9px;color:#dec6c2}.crew-state{font-size:9px;color:#b4f3c1;white-space:nowrap}.crew-state.off{color:#dfc5c6}.manager-panel{background:#f3d3bd;color:#66443f;border-color:#ffe3c8;flex:1;min-height:155px}.manager-title{font-size:11px;font-weight:900;color:#98614f}.manager-panel p{font-family:Georgia,"Yu Mincho",serif;font-size:15px;font-weight:900;line-height:1.65;margin:12px 0}.manager-panel button{border:1px solid #b98677;background:#fbe5ce;border-radius:8px;padding:7px 10px;font-size:10px;color:#754b42;font-weight:900}.summary-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.summary-strip>div{padding:14px 17px;border:1px solid #946f7b;border-radius:14px;background:linear-gradient(135deg,#5a4352,#3d2e46);min-width:0}.summary-strip span{display:block;color:#eacdcc;font-size:11px;font-weight:800}.summary-strip strong{display:block;font-size:27px;line-height:1.25;margin-top:5px;color:#ffe3be;font-variant-numeric:tabular-nums}.summary-strip small{font-size:12px}.bottom-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}#activity-log{margin:0;padding:0;list-style:none;display:grid;gap:7px;max-height:302px;overflow:auto}.log-entry{display:grid;grid-template-columns:52px 27px minmax(0,1fr);gap:8px;align-items:start;border-radius:8px;background:#654c5d;border:1px solid #8a6a74;padding:9px 8px;font-size:11px}.log-entry time{color:#f3d2c7;font-size:10px;padding-top:2px;font-variant-numeric:tabular-nums}.log-sign{display:grid;place-items:center;width:23px;height:23px;border-radius:7px;background:#ecd2ba;color:#5b3b39;font-weight:900}.log-entry[data-kind="enter"] .log-sign{background:#bee8ba;color:#365f43}.log-entry[data-kind="leave"] .log-sign{background:#ffc0c0;color:#783d47}.log-entry[data-kind="update"] .log-sign{background:#d3c3fa;color:#53416d}.log-entry[data-kind="system"] .log-sign{background:#ffe3ab;color:#704d2c}.log-msg{min-width:0;overflow-wrap:anywhere}.worker-detail{display:flex;gap:17px;align-items:center;min-height:138px;padding:12px;border-radius:11px;background:#5a4352;border:1px solid #896a77}.worker-detail img{width:100px;height:94px;object-fit:contain;image-rendering:pixelated;flex:none}.worker-detail h3{margin:0 0 7px;font-size:15px}.worker-detail dl{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;margin:0;font-size:11px}.worker-detail dt{color:#e0c0c1}.worker-detail dd{margin:0;overflow-wrap:anywhere}.worker-detail p{font-size:12px;color:#f8dfd1}.mock-controls{display:flex;gap:8px;margin-top:10px}.mock-controls[hidden]{display:none}.mock-controls button{padding:9px 13px;border-radius:9px;color:#382a31;background:#f5ccad;border:0;font-size:11px;font-weight:900}.footer{padding:8px 22px 22px;color:#b995a4;font-size:9px;letter-spacing:1px;text-align:center}@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}@keyframes enter{from{opacity:0;transform:translateY(18px) scale(.7)}to{opacity:1;transform:none}}@keyframes leave{to{opacity:0;transform:translateY(-24px) scale(.7)}}
+@media(max-width:1160px){.layout{grid-template-columns:74px minmax(0,1fr)}.logo{justify-content:center}.logo>div,.rail-caption,.nav-item span,.rail-card,.rail-message,.rail-foot{display:none}.nav-item{text-align:center;padding:12px 0}.content-grid{grid-template-columns:minmax(0,1fr) 220px}}@media(max-width:800px){.layout{display:block}.rail{position:relative;min-height:0;padding:9px 12px;flex-direction:row;align-items:center;justify-content:space-between}.logo{margin:0}.logo>div{display:block}.logo b{font-size:14px}.logo small{font-size:6px}.logo-mark{width:33px;height:33px}.rail .nav{margin:0;display:flex;gap:3px}.rail .nav-item{padding:8px;font-size:11px}.rail .nav-item span{display:inline;margin-left:2px}.rail-caption,.rail-card,.rail-message,.rail-foot{display:none}.content-grid{grid-template-columns:1fr}.right-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.7fr)}.worker-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.bottom-grid{grid-template-columns:1fr}.summary-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){.rail .nav-item span{display:none}.topbar{padding:10px 12px;min-height:56px}.crumb{font-size:9px}.heading-stamp{display:none}.heading{margin-bottom:13px}.heading h1{font-size:23px}.right-panels{grid-template-columns:1fr}.worker-list{grid-template-columns:repeat(2,minmax(0,1fr))}.crew-row{gap:4px;padding:6px}.crew-row img{width:30px;height:31px}.crew-info b{font-size:10px}.crew-state{font-size:8px}.worker-actor img{width:51px}.worker-actor .bubble{font-size:8px;max-width:65px}.scene-top,.scene-bottom{padding:7px;font-size:8px}.summary-strip{gap:7px}.summary-strip>div{padding:10px}.summary-strip strong{font-size:22px}.panel{padding:12px}.worker-detail img{width:72px;height:68px}.log-entry{grid-template-columns:43px 22px 1fr;gap:5px;padding:7px 5px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* The factory manager has a corner of his own (although he denies it). */
+.manager-panel{position:relative;overflow:hidden;min-height:210px;background-image:linear-gradient(135deg,#f9dcc4cc,#eab9ac88),url('/assets/octopus/manager.png');background-repeat:no-repeat;background-size:100% 100%,175px auto;background-position:center,100% 100%;}
+.manager-panel::after{content:'THE MANAGER\2019 S CORNER';position:absolute;left:16px;bottom:17px;font-size:9px;letter-spacing:1.2px;font-weight:900;color:#905f56;}
+.manager-panel p{position:relative;z-index:1;max-width:220px;text-shadow:0 1px 0 #ffeddd}
+.manager-panel button{position:relative;z-index:1;}
+@media(max-width:500px){.topbar{flex-wrap:wrap;gap:7px}.top-actions{width:100%;justify-content:flex-end}#connection-status,.day-toggle{white-space:nowrap}.manager-panel{min-height:205px}.manager-panel p{max-width:210px}}
 
-/* Claude Office — Neon Night Shift */
-/* UI Contract v1 / CSS only */
+/* ===== app.js の書き直しに合わせた追加 ===== */
+/* 1つの作業場所に5人以上いるとき、5人目からは hidden（display:flex に負けないよう明示） */
+.worker-actor[hidden],.overflow-badge[hidden]{display:none}
+/* 退室中のタコは押せない */
+.worker-actor[data-state="leaving"]{pointer-events:none}
+/* 「ほか○匹」の札 */
+.overflow-badge{align-self:center;margin-left:4px;border:1px solid #eac3a2;border-radius:7px;padding:2px 7px;background:#3a273be8;color:#fff3df;font-size:9px;font-weight:850;white-space:nowrap}
+/* ログが空のときの案内 */
+#activity-log:empty::before{content:'まだ記録はありません。';display:block;padding:9px 8px;color:#eacdd0;font-size:11px}
+@media(prefers-reduced-motion:reduce){.worker-actor[data-state="leaving"]{opacity:.35}}
 
-:root {
-  color-scheme: dark;
-  --bg: #090b1b;
-  --panel: #151a36;
-  --panel-light: #202849;
-  --text: #f5f7ff;
-  --muted: #b9c4de;
-  --cyan: #56f1f1;
-  --purple: #c39cff;
-  --lime: #c4f47d;
-  --pink: #ff97cb;
-  --gold: #ffd28b;
-  --border: #404b77;
+/* =========================================================
+   照明（昼・夕・夜）とタコのモーション
+   - 背景 PNG・照明レイヤー・タコ・UI はそれぞれ独立させる（画面全体に filter はかけない）
+   - 重なり順：背景の絵 → 照明レイヤーの中身(z1) → .slot(z2) → #scene-fx(z3) → #scene-empty(z4)
+   - 照明・影武者はすべて pointer-events:none（タコのクリックを妨げない）
+   - 動きは CSS アニメーション（transform / opacity 中心）。JS は data- 属性を書き換えるだけ
+   ========================================================= */
+
+/* ----- ★ 位置と色の調整はここだけ（背景画像に対する %。ブラウザで見ながら直す） ----- */
+.scene {
+  container-type: inline-size; /* 光の大きさを工房の幅（cqw）で決めるため */
+  --door-x: 25.1%;             /* 1階の自動ドアの足元。app.js も歩く先としてこの値を読む（上の階は .slot で上書き） */
+  --door-y: 87.4%;
+  --octo-w: 9.5cqw;             /* タコの表示幅（背景の幅に対する割合で固定） */
+  --light-fade: 1s;            /* 照明を切り替えるときの時間 */
+  --octo-skin: #d87858;       /* まぶたの色（タコの体の色） */
 }
+.light-spot[data-spot="ceiling-3f-a"] { --spot-x: 34.0%; --spot-y: 22.0%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-3f-b"] { --spot-x: 49.4%; --spot-y: 22.0%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-3f-c"] { --spot-x: 65.9%; --spot-y: 22.0%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-2f-a"] { --spot-x: 34.0%; --spot-y: 46.9%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-2f-b"] { --spot-x: 49.4%; --spot-y: 46.9%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-2f-c"] { --spot-x: 65.9%; --spot-y: 46.9%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-1f-a"] { --spot-x: 34.0%; --spot-y: 71.4%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-1f-b"] { --spot-x: 49.4%; --spot-y: 71.4%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="ceiling-1f-c"] { --spot-x: 65.9%; --spot-y: 71.4%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="screen-3f"]    { --spot-x: 66.8%; --spot-y: 28.5%; --spot-size: 6.67cqw; }
+.light-spot[data-spot="monitor-5"]    { --spot-x: 31.3%; --spot-y: 57.1%; --spot-size: 4.67cqw; }
+.light-spot[data-spot="monitor-6"]    { --spot-x: 42.1%; --spot-y: 57.1%; --spot-size: 4.67cqw; }
+.light-spot[data-spot="monitor-7"]    { --spot-x: 56.5%; --spot-y: 56.8%; --spot-size: 5.33cqw; }
+.light-spot[data-spot="server"]       { --spot-x: 65.5%; --spot-y: 80.3%; --spot-size: 4.0cqw; }
+.light-spot[data-spot="door"]         { --spot-x: 25.1%; --spot-y: 72.8%; --spot-size: 6.67cqw; }
 
-* {
-  box-sizing: border-box;
-}
+/* 作業場所（役割ごとに2か所）。left/top は1匹目の足もと、--seat2-dx/dy は2匹目までのずれ、--door-x/y は歩き始める入口 */
+.scene .slot[data-role="researcher"]     { left: 35.2%; top: 39.1%; --seat2-dx: 9.2cqw; --seat2-dy: -1.33cqw; --door-x: 76.0%; --door-y: 39.1%; }
+.scene .slot[data-role="code-explainer"] { left: 56.5%; top: 39.1%; --seat2-dx: 10.27cqw; --seat2-dy: 0.0cqw;    --door-x: 76.0%; --door-y: 39.1%; }
+.scene .slot[data-role="coder"]          { left: 30.0%; top: 62.1%; --seat2-dx: 12.6cqw; --seat2-dy: 0.0cqw;    --door-x: 76.0%; --door-y: 63.7%; }
+.scene .slot[data-role="code-reviewer"]  { left: 56.5%; top: 62.1%; --seat2-dx: 12.27cqw; --seat2-dy: 1.07cqw;  --door-x: 76.0%; --door-y: 63.7%; }
+.scene .slot[data-role="other"]          { left: 33.7%; top: 84.1%; --seat2-dx: 12.93cqw; --seat2-dy: 0.4cqw;  }
+.scene .slot[data-role="test-runner"]    { left: 57.9%; top: 84.1%; --seat2-dx: 12.8cqw; --seat2-dy: 2.2cqw;  }
 
-html {
-  min-width: 320px;
-}
-
-body {
-  margin: 0;
-  padding: 24px clamp(12px, 4vw, 56px) 48px;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 12% 3%, #29235b 0, transparent 38%),
-    radial-gradient(ellipse at 95% 26%, #142e48 0, transparent 40%),
-    var(--bg);
-  color: var(--text);
-  font-family:
-    system-ui, -apple-system, "Hiragino Sans",
-    "Yu Gothic UI", "Meiryo", sans-serif;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-}
-
-.page-header,
-main {
-  max-width: 1450px;
-  margin-inline: auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: clamp(1.65rem, 3.3vw, 2.5rem);
-  font-weight: 850;
-  letter-spacing: -.045em;
-  color: #fff;
-  text-shadow: 0 0 30px #8f83fa75;
-}
-
-.page-header h1::before {
-  content: "✦";
-  display: inline-block;
-  margin-right: 12px;
-  color: var(--cyan);
-  text-shadow: 0 0 16px #56f1f1;
-}
-
-#connection-status {
-  margin: 0;
-  padding: 9px 15px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: #171d38;
-  color: var(--text);
-  font-size: .85rem;
-  font-weight: 700;
-}
-
-#connection-status::before {
-  content: "●";
-  margin-right: 9px;
-}
-
-#connection-status[data-connection="open"] {
-  border-color: #548d81;
-  color: #b6ffda;
-}
-
-#connection-status[data-connection="connecting"],
-#connection-status[data-connection="reconnecting"] {
-  border-color: #a48a5e;
-  color: #ffe0a2;
-}
-
-#connection-status[data-connection="closed"] {
-  border-color: #a96080;
-  color: #ffc4d6;
-}
-
-body[data-mode="mock"] #connection-status::after {
-  content: " · DEMO";
-  color: #e4c7ff;
-}
-
-/* ===== Office room ===== */
-
-.office {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-  padding: 106px 28px 42px;
-  overflow: hidden;
-  border: 1px solid #505c91;
-  border-radius: 24px;
-  background:
-    linear-gradient(90deg,
-      transparent 0%,
-      #54c5fa2a 50%,
-      transparent 100%) center 88px / 94% 2px no-repeat,
-    repeating-linear-gradient(
-      90deg, transparent 0 59px,
-      #7e8be014 60px 61px),
-    repeating-linear-gradient(
-      0deg, transparent 0 59px,
-      #7e8be014 60px 61px),
-    linear-gradient(
-      to bottom,
-      #181c41 0,
-      #101633 94px,
-      #171d39 95px,
-      #11152b 100%);
-  box-shadow:
-    inset 0 0 70px #0007,
-    0 28px 80px #0006;
-}
-
-/* Wall, ceiling neon and window */
-.office::before {
-  content: "";
+/* ----- 照明レイヤー -----
+   .light-layer 自体には z-index・opacity を付けない（付けると中の multiply / screen が背景と混ざらなくなる） */
+.light-layer {
   position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.light-layer > * {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0; /* 昼はすべて透明。モードごとに下で opacity を上げる */
+  transition: opacity var(--light-fade) ease;
+}
+/* 色かぶり（multiply：背景の色を沈める） */
+.light-tint {
+  inset: 0;
+  mix-blend-mode: multiply;
+}
+.light-tint[data-tint="dusk"] {
+  background: linear-gradient(115deg, #ffd9b0 0%, #f4a77f 45%, #b58aab 100%);
+}
+.light-tint[data-tint="night"] {
+  background: linear-gradient(180deg, #4b4f98 0%, #5d5ba1 55%, #6f5c8f 100%);
+}
+/* 月明かり（screen：画面の上から寒色の光を足す） */
+.light-moon {
+  inset: 0;
+  mix-blend-mode: screen;
+  background: linear-gradient(185deg, #7f9fe0aa 0%, #5d77b833 35%, #5d77b800 65%);
+}
+/* 光スポット（screen：暖色の光を足す）。位置と大きさは上の「★」でまとめて決める */
+.light-spot {
+  left: var(--spot-x);
+  top: var(--spot-y);
+  width: var(--spot-size);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  mix-blend-mode: screen;
+}
+.light-spot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd98ae6 0%, #ffb45e66 38%, #ffa04f00 70%);
+  animation: light-breathe 7s ease-in-out infinite; /* 室内灯：ゆっくり小さく明滅 */
+}
+.light-spot[data-light-kind="lantern"]::before {
+  background: radial-gradient(circle, #ffb07ae6 0%, #ff7a5266 40%, #ff6a4000 70%);
+  animation: light-flicker 3.6s ease-in-out infinite;
+}
+.light-spot[data-light-kind="candle"]::before {
+  background: radial-gradient(circle, #ffe2a0ee 0%, #ffbf6a55 40%, #ffaa5000 70%);
+  animation: light-flicker 2.4s ease-in-out infinite;
+}
+.light-spot[data-light-kind="door"]::before {
+  background: radial-gradient(ellipse 60% 45% at 50% 55%, #ffcf8acc 0%, #ffae5c44 55%, #ffa04f00 100%);
+}
+.light-spot[data-spot="lantern-2"]::before,
+.light-spot[data-spot="candle-2"]::before,
+.light-spot[data-spot="window-left-2"]::before {
+  animation-delay: -1.3s; /* 同じ種類でも明滅をずらす */
+}
+
+/* 夕方：斜めのオレンジの色かぶりと、弱く灯った窓 */
+.scene[data-light="dusk"] .light-tint[data-tint="dusk"] { opacity: .8; }
+.scene[data-light="dusk"] .light-spot { opacity: .35; }
+.scene[data-light="dusk"] .light-spot[data-light-kind="lantern"] { opacity: .55; }
+/* 夜：青い色かぶり + 月明かり（寒色）と、窓・ランタン・ろうそく（暖色） */
+.scene[data-light="night"] .light-tint[data-tint="night"] { opacity: .9; }
+.scene[data-light="night"] .light-moon { opacity: 1; }
+.scene[data-light="night"] .light-spot { opacity: 1; }
+
+/* ----- 作業場所のデスクライト（slot の擬似要素） -----
+   ::before はタコの後ろの光だまり、::after はタコと机を暖色で照らす薄い光 */
+.slot::before,
+.slot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--light-fade) ease;
+}
+.slot::before {
   z-index: -1;
-  top: 19px;
-  left: 28px;
-  width: min(35%, 260px);
-  height: 52px;
-  border: 2px solid #55ddef;
-  border-radius: 8px;
-  background:
-    linear-gradient(90deg,
-      transparent 49%,
-      #55ddef 49% 51%,
-      transparent 51%),
-    linear-gradient(0deg,
-      transparent 49%,
-      #55ddef 49% 51%,
-      transparent 51%),
-    linear-gradient(140deg, #16274c, #32306b 85%);
-  box-shadow:
-    0 0 14px #41f0ff65,
-    inset 0 0 22px #41f0ff22;
+  width: 22cqw;
+  aspect-ratio: 1.6;
+  background: radial-gradient(ellipse, #ffd58acc 0%, #ffb0603d 45%, #ffa04f00 70%);
+}
+.slot::after {
+  z-index: 1;
+  top: 45%;
+  width: 16cqw;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 70%, #ffb46a66 0%, #ffb46a00 65%);
+  mix-blend-mode: soft-light;
+}
+.scene[data-light="dusk"] .slot::before { opacity: .2; }
+.scene[data-light="dusk"] .slot:has(> .worker-actor:not([data-state="leaving"]))::before { opacity: .45; }
+.scene[data-light="night"] .slot::before { opacity: .45; }
+.scene[data-light="night"] .slot:has(> .worker-actor:not([data-state="leaving"]))::before,
+.scene[data-light="night"] .slot:has(> .worker-actor:not([data-state="leaving"]))::after { opacity: 1; }
+
+/* 一覧の行に hover / focus したときの強調（作業場所の枠と、その役割のタコ） */
+.slot.is-highlighted {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 12px;
+  outline: 2px dashed #a9f2e1;
+  outline-offset: 6px;
+}
+.worker-actor.is-highlighted .octo-sprite {
+  filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 7px #a9f2e1);
+}
+.worker-actor.is-highlighted .bubble {
+  border-color: #a9f2e1;
+  background: #24414a;
 }
 
-/* Entrance door and its neon strip */
-.office::after {
-  content: "↳  ENTRY";
+/* ----- 見た目専用のレイヤー（退室の影武者を歩かせる） ----- */
+.scene-fx {
   position: absolute;
-  box-sizing: border-box;
-  top: 12px;
-  right: 27px;
-  width: 112px;
-  height: 76px;
-  padding-top: 22px;
-  border: 2px solid #5decf7;
-  border-bottom: none;
-  border-radius: 14px 14px 0 0;
-  background:
-    linear-gradient(90deg, #75f4ff20, transparent 35%),
-    #101b37;
-  box-shadow:
-    0 0 19px #38e7fa90,
-    inset 0 0 20px #38e7fa24;
-  color: #c8fbff;
-  font-size: .73rem;
-  font-weight: 850;
-  letter-spacing: .13em;
-  text-align: center;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.scene-empty { z-index: 4; }
+.octo-ghost {
+  position: absolute;
+  left: var(--ghost-x, 0px);
+  top: var(--ghost-y, 0px);
+  width: var(--ghost-w, 60px);
+  filter: drop-shadow(0 6px 4px #2f19267d);
+  animation: octo-walk-out var(--walk-ms, 1.4s) linear forwards;
+}
+.octo-ghost .octo-sprite {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
 }
 
-/* ===== Role desks ===== */
-
-.desk {
-  --accent: var(--purple);
+/* ----- タコの中身：button.worker-actor > .octo-rig > .octo-body > img + まぶた ----- */
+.octo-rig {
   position: relative;
-  min-width: 0;
-  min-height: 260px;
-  padding: 17px 14px 19px;
-  border: 1px solid var(--accent);
-  border-radius: 17px;
-  background:
-    linear-gradient(145deg, #22294aee, #141a32f5 72%);
-  box-shadow:
-    0 0 18px color-mix(in srgb, var(--accent) 17%, transparent),
-    inset 0 1px 0 #ffffff18,
-    0 14px 26px #0005;
+  display: block;
+  transform-origin: 50% 100%;
+}
+/* 向き：左向きは左右反転（transform のアニメとぶつからないよう scale を使う） */
+.worker-actor[data-facing="left"] .octo-rig,
+.octo-ghost[data-facing="left"] .octo-rig {
+  scale: -1 1;
+}
+.octo-body {
+  position: relative;
+  display: block;
+  transform-origin: 50% 100%;
+}
+.worker-actor .octo-sprite {
+  display: block;
+  animation: none; /* 以前の floaty（上下に浮くだけ）は使わない */
+  transform-origin: 50% 0;
+}
+/* まばたき：目の上にタコの色のまぶたをかぶせる（間隔は app.js がタコごとにばらす） */
+.octo-lids {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.octo-lids::before,
+.octo-lids::after {
+  content: '';
+  position: absolute;
+  top: 39%;
+  width: 5.5%;
+  height: 10%;
+  background: var(--octo-skin);
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  animation: octo-blink var(--blink-ms, 4.8s) var(--blink-delay, 0s) infinite;
+}
+.octo-lids::before { left: 30%; }
+.octo-lids::after { left: 63.5%; }
+/* 役割の小物（CSS で描く。::before / ::after が絵、本体は全体を覆う透明な箱） */
+.octo-prop {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+.octo-prop::before,
+.octo-prop::after {
+  content: '';
+  position: absolute;
+}
+/* リアクションや仕事の記号（反転させないので .octo-rig の外にある） */
+.octo-mark {
+  position: absolute;
+  top: -6px;
+  right: -2px;
+  z-index: 1;
+  min-width: 14px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  color: #fff3c4;
+  text-shadow: 0 1px 0 #3a273b, 0 0 4px #3a273b;
+  pointer-events: none;
+  opacity: 0;
 }
 
-.desk::before {
-  content: "";
-  position: absolute;
-  inset: -1px 18px auto;
-  height: 3px;
-  border-radius: 0 0 5px 5px;
-  background: var(--accent);
-  box-shadow: 0 0 13px var(--accent);
-}
+/* ----- 共通モーション ----- */
+/* idle：呼吸（わずかな伸縮）+ 足もとの小さな揺れ */
+.worker-actor[data-motion="idle"] .octo-body { animation: octo-breathe 2.8s ease-in-out infinite; }
+.worker-actor[data-motion="idle"] .octo-sprite { animation: octo-feet 1.9s ease-in-out infinite; }
+/* walk：左右によちよち（交互に傾く + 上下） */
+.worker-actor[data-motion="walk"] .octo-rig,
+.octo-ghost .octo-rig { animation: octo-waddle .45s ease-in-out infinite; }
+/* 入室：入口（--walk-from-x/y のずれ）から自分の席まで歩いてくる */
+.worker-actor[data-visual="walk-in"] { animation: octo-walk-in var(--walk-ms, 1.4s) cubic-bezier(.3, .1, .4, 1) both; }
+/* 退室：本物は見えなくし、#scene-fx の影武者が入口まで歩く */
+.worker-actor[data-visual="ghosted"] { opacity: 0; animation: none; }
+/* 位置を測る一瞬だけ、アニメの影響を外す */
+.worker-actor[data-visual="measure"],
+.worker-actor[data-visual="measure"] .octo-rig { animation: none !important; transform: none !important; }
 
-.desk::after {
-  content: "";
-  position: absolute;
-  right: 16px;
-  top: 23px;
+/* react：記号とポーズ（驚く「!」・喜ぶ「♪」・困る「汗」） */
+.worker-actor[data-motion="react"] .octo-mark { opacity: 1; animation: octo-mark-pop .4s ease-out both; }
+.worker-actor[data-react="surprise"] .octo-mark::before { content: '!'; color: #ffe36b; font-size: 15px; }
+.worker-actor[data-react="surprise"] .octo-rig { animation: octo-jolt .5s ease-out 1; }
+.worker-actor[data-react="joy"] .octo-mark::before { content: '\266A'; color: #ffd1ec; }
+.worker-actor[data-react="joy"] .octo-body { animation: octo-hop .6s ease-in-out infinite; }
+.worker-actor[data-react="trouble"] .octo-mark::before {
+  content: '';
+  display: block;
   width: 7px;
   height: 7px;
+  margin: 2px auto 0;
+  border-radius: 0 50% 50% 50%;
+  background: #8fd3ff;
+  transform: rotate(45deg); /* 汗のしずく */
+}
+.worker-actor[data-react="trouble"] .octo-sprite { animation: octo-shiver .22s linear infinite; }
+
+/* ----- 仕事モーション（役割ごとの data-pose。進捗や成否は表さない、役割の演出） ----- */
+.worker-actor[data-motion="work"] .octo-prop { display: block; }
+.worker-actor[data-motion="work"] .octo-body { animation: octo-breathe 3.4s ease-in-out infinite; }
+.worker-actor[data-pose="check"] .octo-mark,
+.worker-actor[data-pose="tilt"] .octo-mark,
+.worker-actor[data-pose="think"] .octo-mark { opacity: 1; }
+
+/* researcher：虫眼鏡を動かす（レンズのきらめき）／本をめくる */
+.worker-actor[data-pose="magnify"] .octo-prop::before {
+  left: 63%;
+  top: 49%;
+  width: 9%;
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 9px var(--accent);
+  background: radial-gradient(circle, #ffffffee 0%, #ffffff00 70%);
+  animation: octo-magnify 1.8s ease-in-out infinite;
+}
+.worker-actor[data-pose="book"] .octo-prop::before {
+  left: -12%;
+  top: 60%;
+  width: 30%;
+  height: 22%;
+  border: 2px solid #6b4b3e;
+  border-radius: 2px;
+  background: #e9dcc0;
+}
+.worker-actor[data-pose="book"] .octo-prop::after {
+  left: 3%;
+  top: 62%;
+  width: 13%;
+  height: 18%;
+  background: #fff8e8;
+  transform-origin: 0 50%;
+  animation: octo-page 1.6s ease-in-out infinite;
+}
+/* coder：キーボードを打つ（小刻み + キーの粒）／モニターを見る */
+.worker-actor[data-pose="type"] .octo-sprite { animation: octo-type .2s steps(2) infinite; }
+.worker-actor[data-pose="type"] .octo-prop::before,
+.worker-actor[data-pose="type"] .octo-prop::after {
+  left: 40%;
+  top: 62%;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #bff7ec;
+  animation: octo-key-spark .7s ease-out infinite;
+}
+.worker-actor[data-pose="type"] .octo-prop::after {
+  left: 58%;
+  --spark-dx: -5px;
+  animation-delay: .35s;
+}
+.worker-actor[data-pose="monitor"] .octo-body { animation: octo-lean 3s ease-in-out infinite; }
+.worker-actor[data-pose="monitor"] .octo-prop::before {
+  left: 35%;
+  top: 71%;
+  width: 46%;
+  height: 15%;
+  background: #a6fff0;
+  mix-blend-mode: screen;
+  animation: octo-glow 2.2s ease-in-out infinite;
+}
+/* test-runner：チェック（✓）を付ける／喜ぶ */
+.worker-actor[data-pose="check"] .octo-mark::before { content: '\2713'; color: #b8f5b0; }
+.worker-actor[data-pose="check"] .octo-mark { animation: octo-check 1.8s ease-out infinite; }
+.worker-actor[data-pose="check"] .octo-body { animation: octo-nod 1.8s ease-in-out infinite; }
+.worker-actor[data-pose="cheer"] .octo-body { animation: octo-hop .7s ease-in-out infinite; }
+/* code-reviewer：赤ペンで線を引く／首をかしげる */
+.worker-actor[data-pose="redpen"] .octo-prop::before {
+  left: 62%;
+  top: 56%;
+  width: 4%;
+  height: 26%;
+  border-radius: 2px;
+  background: linear-gradient(#f4e3c8 0 20%, #d8423f 20% 100%);
+  rotate: 35deg;
+  animation: octo-pen 1.2s ease-in-out infinite;
+}
+.worker-actor[data-pose="redpen"] .octo-prop::after {
+  left: 40%;
+  top: 86%;
+  width: 34%;
+  height: 2px;
+  background: #e0524e;
+  transform-origin: 0 50%;
+  animation: octo-line 1.2s ease-in-out infinite;
+}
+.worker-actor[data-pose="tilt"] .octo-mark::before { content: '?'; color: #ffe6c7; }
+.worker-actor[data-pose="tilt"] .octo-body { animation: octo-tilt 2.6s ease-in-out infinite; }
+/* code-explainer：指し棒で図を示す（小さな図 + 棒の先のきらめき） */
+.worker-actor[data-pose="point"] .octo-prop::before {
+  left: -24%;
+  top: 28%;
+  width: 30%;
+  height: 30%;
+  border: 2px solid #6b4b3e;
+  border-radius: 2px;
+  background:
+    linear-gradient(to top, #7cc4a8 0 40%, transparent 40%) 18% 100% / 18% 80% no-repeat,
+    linear-gradient(to top, #f0a46e 0 70%, transparent 70%) 50% 100% / 18% 80% no-repeat,
+    linear-gradient(to top, #8fb4ff 0 55%, transparent 55%) 82% 100% / 18% 80% no-repeat,
+    #f6efe0;
+}
+.worker-actor[data-pose="point"] .octo-prop::after {
+  left: 88%;
+  top: 9%;
+  width: 14%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6c8ee 0%, #fff6c800 70%);
+  animation: octo-glow 1.4s ease-in-out infinite;
+}
+.worker-actor[data-pose="point"] .octo-body { animation: octo-lean 2s ease-in-out infinite; }
+/* other：書類を整理する／考える（…） */
+.worker-actor[data-pose="sort"] .octo-prop::before,
+.worker-actor[data-pose="sort"] .octo-prop::after {
+  left: 72%;
+  top: 64%;
+  width: 22%;
+  height: 22%;
+  border: 1px solid #b9a58c;
+  background: repeating-linear-gradient(#fffaf0 0 3px, #d9cdb8 3px 4px);
+}
+.worker-actor[data-pose="sort"] .octo-prop::after { animation: octo-shuffle 1.5s ease-in-out infinite; }
+.worker-actor[data-pose="sort"] .octo-body { animation: octo-nod 1.5s ease-in-out infinite; }
+.worker-actor[data-pose="think"] .octo-mark::before { content: '\2026'; color: #ffe6c7; }
+.worker-actor[data-pose="think"] .octo-mark { animation: octo-dots 1.6s ease-in-out infinite; }
+.worker-actor[data-pose="think"] .octo-body { animation: octo-tilt 3.6s ease-in-out infinite; }
+
+/* ----- スプライトシート（app.js の SPRITE_SHEETS に設定した役割だけ。未設定なら使われない） ----- */
+.worker-actor[data-motion] .octo-body[data-sprite="sheet"] {
+  background-image: var(--sheet-image);
+  background-repeat: no-repeat;
+  background-size: calc(var(--sheet-cols, var(--sheet-frames)) * 100%) calc(var(--sheet-rows) * 100%);
+  background-position-y: calc(var(--sheet-row-ratio) * 100%);
+  animation: octo-sheet var(--sheet-duration) steps(var(--sheet-frames), jump-none) infinite;
+}
+.worker-actor[data-motion] .octo-body[data-sprite="sheet"] .octo-sprite { opacity: 0; animation: none; }
+.octo-body[data-sprite="sheet"] .octo-lids { display: none; }
+
+/* ----- モック操作のボタンが増えたので折り返す ----- */
+.mock-controls { flex-wrap: wrap; }
+@media (max-width: 500px) {
+  .mock-controls button { flex: 1 1 45%; padding: 8px; }
+  .octo-mark { font-size: 11px; }
 }
 
-.desk[data-role="researcher"] {
-  --accent: #64e6db;
-}
-
-.desk[data-role="coder"] {
-  --accent: #84baff;
-}
-
-.desk[data-role="test-runner"] {
-  --accent: #c4f47d;
-}
-
-.desk[data-role="code-reviewer"] {
-  --accent: #ff91c0;
-}
-
-.desk[data-role="code-explainer"] {
-  --accent: #c39cff;
-}
-
-.desk[data-role="other"] {
-  --accent: #ffd28b;
-}
-
-.desk[data-count="0"] {
-  border-style: dashed;
-  box-shadow: inset 0 1px 0 #ffffff0a;
-}
-
-.desk-label {
-  margin: 0 0 17px;
-  padding-right: 18px;
-  color: #fff;
-  font-size: .97rem;
-  font-weight: 800;
-  letter-spacing: .02em;
-}
-
-.desk[data-count="0"] .desk-label {
-  color: #c1c9df;
-}
-
-.desk-label::before {
-  content: "▣";
-  margin-right: 9px;
-  color: var(--accent);
-}
-
-.desk-seats {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 14px;
-  min-height: 183px;
-}
-
-/* ===== Seats ===== */
-
-.seat {
-  position: relative;
-  display: flex;
-  flex: 1 1 120px;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  max-width: 190px;
-  gap: 10px;
-}
-
-.cat {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100px;
-  padding: 5px 0;
-}
-
-/* Desktop surface behind the cat */
-.cat::before {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  width: min(100%, 140px);
-  height: 19px;
-  border: 1px solid #596488;
-  border-bottom: 4px solid #28304f;
-  border-radius: 8px;
-  background: linear-gradient(#505a7c, #2f395b);
-  box-shadow: 0 6px 14px #0007;
-}
-
-.cat-svg {
-  position: relative;
-  width: 94px;
-  height: 94px;
-  overflow: visible;
-  filter: drop-shadow(0 5px 4px #0007);
-}
-
-/* ===== Cat motions ===== */
-
-.seat[data-state="present"] .cat-svg {
-  animation: cat-bob 3.8s ease-in-out infinite;
-}
-
-.seat[data-state="present"] .cat-tail {
-  transform-box: fill-box;
-  transform-origin: 20% 80%;
-  animation: cat-tail-wiggle 2.8s ease-in-out infinite;
-}
-
-.seat[data-state="present"] .cat-eye {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: cat-blink 6.2s infinite;
-}
-
-.seat[data-state="entering"] {
-  animation: seat-enter .48s cubic-bezier(.2, 1.3, .38, 1) both;
-}
-
-.seat[data-state="leaving"] {
-  animation: seat-leave .46s ease-in forwards;
-}
-
-.seat[data-state="absent"] {
-  opacity: .72;
-}
-
-.seat[data-state="absent"] .cat::before {
-  opacity: .45;
-}
-
-.seat[data-state="absent"] .cat-svg {
-  filter: none;
-}
-
-.seat[data-state="absent"] .cat::after {
-  content: "不在";
-  position: absolute;
-  bottom: -18px;
-  color: #d2dbf3;
-  font-size: .8rem;
-  font-weight: 750;
-}
-
-@keyframes seat-enter {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(.8);
-  }
-  75% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes seat-leave {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-24px) scale(.83);
-  }
-}
-
-@keyframes cat-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-@keyframes cat-tail-wiggle {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(12deg); }
-}
-
-@keyframes cat-blink {
-  0%, 43%, 46%, 100% { transform: scaleY(1); }
-  44%, 45% { transform: scaleY(.12); }
-}
-
-/* ===== Nameplates ===== */
-
-.nameplate {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 5px 7px;
-  width: 100%;
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid #485475;
-  border-radius: 10px;
-  background: #0c1229;
-  color: #f5f7ff;
-  font-size: .7rem;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-.nameplate [data-field="role_label"] {
-  grid-column: 1 / -1;
-  font-size: .81rem;
-  font-weight: 800;
-  color: #fff;
-}
-
-.nameplate [data-field="agent_type"] {
-  grid-column: 1 / -1;
-  color: #bec9e8;
-  font-size: .68rem;
-}
-
-.nameplate [data-field="model"] {
-  justify-self: start;
-  grid-column: 1 / -1;
-  max-width: 100%;
-  padding: 3px 7px;
-  border: 1px solid #606d94;
-  border-radius: 5px;
-  background: #293554;
-  color: #fff;
-  font-weight: 750;
-  overflow-wrap: anywhere;
-}
-
-.nameplate [data-field="model"]::before {
-  content: "MODEL  ";
-  font-size: .59rem;
-  letter-spacing: .05em;
-}
-
-.seat[data-model="haiku"] [data-field="model"] {
-  background: #143a3e;
-  border-color: #458b91;
-  color: #d3ffff;
-}
-
-.seat[data-model="sonnet"] [data-field="model"] {
-  background: #26335c;
-  border-color: #748bda;
-  color: #e3ebff;
-}
-
-.seat[data-model="opus"] [data-field="model"] {
-  background: #482343;
-  border-color: #a36b9c;
-  color: #ffe1f3;
-}
-
-.nameplate [data-field="started_at"] {
-  color: #d1d9f0;
-  font-size: .67rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.nameplate [data-field="elapsed"] {
-  justify-self: end;
-  padding: 3px 6px;
-  border-radius: 5px;
-  background: #263350;
-  color: #d4fca5;
-  font-size: .69rem;
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ===== Activity logs ===== */
-
-.activity {
-  margin-top: 24px;
-  padding: 20px;
-  border: 1px solid #465176;
-  border-radius: 18px;
-  background: linear-gradient(150deg, #1b2240, #11172e);
-  box-shadow: 0 14px 35px #0004;
-}
-
-.activity h2 {
-  margin: 0 0 15px;
-  color: #fff;
-  font-size: 1.05rem;
-}
-
-.activity h2::before {
-  content: "≡";
-  margin-right: 10px;
-  color: var(--cyan);
-  font-size: 1.3rem;
-}
-
-#activity-log {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  max-height: 335px;
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
-  scrollbar-color: #62729d #171c34;
-}
-
-.log-entry {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid #343f60;
-  border-left: 3px solid #8696b9;
-  border-radius: 8px;
-  background: #0e152c;
-  color: #f2f5ff;
-  font-size: .82rem;
-  overflow-wrap: anywhere;
-}
-
-.log-entry::before {
-  flex: none;
-  content: "•";
-  width: 18px;
-  text-align: center;
-  font-weight: 900;
-}
-
-.log-entry[data-kind="enter"] {
-  border-left-color: #9be8bd;
-}
-
-.log-entry[data-kind="enter"]::before {
-  content: "↳";
-  color: #9be8bd;
-}
-
-.log-entry[data-kind="leave"] {
-  border-left-color: #ffadc7;
-}
-
-.log-entry[data-kind="leave"]::before {
-  content: "↰";
-  color: #ffadc7;
-}
-
-.log-entry[data-kind="update"] {
-  border-left-color: #a8baff;
-}
-
-.log-entry[data-kind="update"]::before {
-  content: "↻";
-  color: #a8baff;
-}
-
-.log-entry[data-kind="system"] {
-  border-left-color: #f8d493;
-}
-
-.log-entry[data-kind="system"]::before {
-  content: "!";
-  color: #f8d493;
-}
-
-.log-entry[data-reason="timeout"] [data-field="message"] {
-  color: #ffd2de;
-}
-
-.log-entry [data-field="time"] {
-  flex: none;
-  color: #c3cee8;
-  font-size: .72rem;
-  font-family: ui-monospace, "Consolas", monospace;
-  font-variant-numeric: tabular-nums;
-  padding-top: 2px;
-}
-
-.log-entry [data-field="message"] {
-  min-width: 0;
-  flex: 1;
-}
-
-/* ===== Responsive ===== */
-
-@media (max-width: 980px) {
-  .office {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    padding: 104px 18px 24px;
-  }
-}
-
-@media (max-width: 580px) {
-  body {
-    padding: 15px 12px 30px;
-  }
-
-  .page-header {
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .page-header h1 {
-    font-size: 1.6rem;
-  }
-
-  #connection-status {
-    font-size: .76rem;
-    padding: 7px 10px;
-  }
-
-  .office {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding: 102px 13px 20px;
-    border-radius: 17px;
-  }
-
-  .office::before {
-    left: 15px;
-    width: 35%;
-  }
-
-  .office::after {
-    right: 15px;
-    width: 92px;
-    font-size: .65rem;
-  }
-
-  .desk {
-    min-height: 220px;
-  }
-
-  .desk-seats {
-    min-height: 150px;
-    gap: 12px;
-  }
-
-  .seat {
-    flex-basis: 115px;
-  }
-
-  .activity {
-    padding: 13px;
-  }
-
-  .log-entry {
-    gap: 7px;
-    padding: 10px 7px;
-    font-size: .75rem;
-  }
-
-  .log-entry [data-field="time"] {
-    font-size: .66rem;
-  }
-}
-
-/* ===== Accessibility ===== */
-
+/* ----- 動きを減らす設定：歩き・揺れ・明滅を止め、静止画で分かるようにする
+   （アニメと transition は 4行目の !important のルールで全部止まる。照明の点灯そのものは残る） ----- */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-
-  .seat[data-state="leaving"] {
-    opacity: .15;
-  }
-
-  .seat[data-state="entering"] {
-    opacity: 1;
-  }
+  .octo-ghost { display: none; }
+  .worker-actor[data-visual="ghosted"] { opacity: .35; }
 }
+
+/* ----- キーフレーム ----- */
+@keyframes light-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .9; } }
+@keyframes light-flicker { 0%, 100% { opacity: 1; } 30% { opacity: .86; } 45% { opacity: .97; } 70% { opacity: .9; } }
+@keyframes octo-blink { 0%, 93%, 100% { transform: scaleY(0); } 96% { transform: scaleY(1); } }
+@keyframes octo-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, .97); } }
+@keyframes octo-feet { 0%, 100% { transform: skewX(0); } 25% { transform: skewX(2.5deg); } 75% { transform: skewX(-2.5deg); } }
+@keyframes octo-waddle {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  25% { transform: translateY(-4px) rotate(0); }
+  50% { transform: translateY(0) rotate(6deg); }
+  75% { transform: translateY(-4px) rotate(0); }
+}
+@keyframes octo-walk-in {
+  0% { transform: translate(var(--walk-from-x, 0px), var(--walk-from-y, 0px)); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes octo-walk-out {
+  0% { transform: translate(0, 0); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate(var(--walk-to-x, 0px), var(--walk-to-y, 0px)); opacity: 0; }
+}
+@keyframes octo-mark-pop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes octo-jolt { 0% { transform: none; } 30% { transform: translateY(-7px) scale(1.06); } 100% { transform: none; } }
+@keyframes octo-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-7px); } }
+@keyframes octo-shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+@keyframes octo-type { 0% { transform: translateY(0); } 100% { transform: translateY(1.5px); } }
+@keyframes octo-key-spark { 0% { transform: translate(0, 0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(var(--spark-dx, 5px), -12px); opacity: 0; } }
+@keyframes octo-lean { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(3deg) translateY(1px); } }
+@keyframes octo-glow { 0%, 100% { opacity: .2; } 50% { opacity: .55; } }
+@keyframes octo-magnify { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(4px, -3px); } 66% { transform: translate(-3px, 3px); } }
+@keyframes octo-page { 0%, 20% { transform: scaleX(1); } 60%, 100% { transform: scaleX(-1); } }
+@keyframes octo-check { 0% { transform: scale(.4); opacity: 0; } 25% { transform: scale(1.2); opacity: 1; } 80% { transform: scale(1); opacity: 1; } 100% { opacity: 0; } }
+@keyframes octo-nod { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-3deg) translateY(1px); } }
+@keyframes octo-pen { 0%, 100% { translate: -6px 0; } 50% { translate: 6px 0; } }
+@keyframes octo-line { 0% { transform: scaleX(0); opacity: 1; } 80% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+@keyframes octo-tilt { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
+@keyframes octo-shuffle { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(-5px, -4px) rotate(-8deg); } }
+@keyframes octo-dots { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes octo-sheet { from { background-position-x: 0%; } to { background-position-x: var(--sheet-end, 100%); } }
+
+
+/* =========================================================
+   オフィスビルの背景（居場所・手前の家具・タコの大きさ）
+   ========================================================= */
+/* 作業場所：left/top をタコの足もとにする（中央ではなく下端の中央が基準） */
+.scene .slot {
+  transform: translate(-50%, -100%);
+  width: var(--octo-w);
+}
+/* タコの大きさは背景の幅に対する割合で固定（画面の幅で家具との比が変わらないように） */
+.scene .worker-actor { min-width: 0; filter: none; margin-bottom: calc(var(--octo-w) * -0.13); /* 絵の下の余白を足もとから外す */ }
+.scene .worker-actor img.octo-sprite { width: var(--octo-w); image-rendering: auto; }
+/* 名札は頭の上に浮かせる（机や足もとに重ならないように） */
+.scene .worker-actor .bubble { position: absolute; left: 50%; bottom: 74%; translate: -50% 0; z-index: 2; }
+.scene .worker-actor .octo-mark { top: 16%; }
+/* 足もとの影 */
+.scene .worker-actor::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--octo-w) * 0.13 - .33cqw);
+  width: calc(var(--octo-w) * .62);
+  height: .73cqw;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: #2a1a2a3d;
+  z-index: -1;
+  pointer-events: none;
+}
+/* 2匹目は隣の居場所へ */
+.scene .slot > .worker-actor:nth-of-type(2) {
+  position: absolute;
+  left: var(--seat2-dx, 0cqw);
+  bottom: calc(var(--seat2-dy, 0cqw) * -1);
+}
+.scene .overflow-badge { position: absolute; left: 50%; top: calc(var(--octo-w) * -0.02); translate: -50% -100%; margin: 0; z-index: 3; }
+
+/* 手前の家具（机・受付・検査台の前面）。タコより上、演出レイヤーより下 */
+.foreground-art,
+.foreground-tint {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+}
+/* 手前の家具にも、背景と同じ夕方・夜の色かぶりを掛ける（家具の形で切り抜く） */
+.foreground-tint {
+  -webkit-mask-image: url('/assets/workshop_foreground.png');
+  mask-image: url('/assets/workshop_foreground.png');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  mix-blend-mode: multiply; /* マスクで切り抜いた色を、下の家具に掛け合わせる */
+}
+.foreground-tint > div {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--light-fade) ease;
+}
+.foreground-tint > [data-tint="dusk"] { background: linear-gradient(115deg, #ffd9b0 0%, #f4a77f 45%, #b58aab 100%); }
+.foreground-tint > [data-tint="night"] { background: #b9a4a2; } /* 机は部屋の中なので、部屋の夜の色に合わせる */
+.scene[data-light="dusk"] .foreground-tint > [data-tint="dusk"] { opacity: .8; }
+.scene[data-light="night"] .foreground-tint > [data-tint="night"] { opacity: .9; }
+
+/* 光の種類を追加：画面（寒色）とサーバー（緑の点滅） */
+.light-spot[data-light-kind="screen"]::before {
+  background: radial-gradient(circle, #b8f0ffcc 0%, #6fd0e555 40%, #6fd0e500 70%);
+  animation: none;
+}
+.light-spot[data-light-kind="server"]::before {
+  background: radial-gradient(circle, #b6ffb0e6 0%, #6fe06a55 40%, #6fe06a00 70%);
+  animation: light-flicker 1.2s steps(2, jump-none) infinite;
+}
+
+/* 夕方・夜はタコも少し沈める（背景より明るく浮かないように。名札はそのまま） */
+.scene .octo-rig { transition: filter var(--light-fade) ease; }
+.scene[data-light="dusk"] .octo-rig { filter: brightness(.93) saturate(.95); }
+.scene[data-light="night"] .octo-rig { filter: brightness(.8) saturate(.85); }
+
+/* 街の明かり：建物の後ろのビルの窓（窓ガラスと建物の外に見える部分だけ）。夕方は少し、夜は全部灯る */
+.light-city { inset: 0; }
+.light-city > img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; }
+/* 点滅：base はずっと点いている窓。a/b/c は時々消えたり点いたりする窓、beacon は屋上の赤いランプ
+   止めたいときは #scene に data-city-blink="off" を付ける */
+.light-city > [data-city="a"] { animation: city-blink-a 9s linear infinite; }
+.light-city > [data-city="b"] { animation: city-blink-b 13s linear infinite -4s; }
+.light-city > [data-city="c"] { animation: city-blink-c 17s linear infinite -9s; }
+.light-city > [data-city="beacon"] { animation: city-beacon 1.8s steps(1, end) infinite; }
+.scene[data-city-blink="off"] .light-city > img { animation: none; }
+@keyframes city-blink-a { 0%, 60% { opacity: 1; } 62%, 80% { opacity: 0; } 82%, 100% { opacity: 1; } }
+@keyframes city-blink-b { 0%, 22% { opacity: 1; } 24%, 47% { opacity: 0; } 49%, 100% { opacity: 1; } }
+@keyframes city-blink-c { 0%, 66% { opacity: 0; } 68%, 100% { opacity: 1; } }
+@keyframes city-beacon { 0% { opacity: 1; } 50% { opacity: .15; } }
+.scene[data-light="dusk"] .light-city { opacity: .35; }
+.scene[data-light="night"] .light-city { opacity: 1; }
+
+/* 部屋の明かり：天井灯から下に広がる光と、床の光だまり（screen で暖色を足す）。窓の外と建物の外には掛けない
+   手前の家具とタコも同じ光を受けるように、それらより上（.foreground-art の後ろ）に置く */
+.light-room {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity var(--light-fade) ease;
+}
+.scene[data-light="dusk"] .light-room { opacity: .45; }
+.scene[data-light="night"] .light-room { opacity: 1; }
+/* 天井灯の光スポットは、器具そのものが灯って見える小さな光だけにする（部屋の光は .light-room） */
+.light-spot[data-spot^="ceiling-"]::before { animation: none; background: radial-gradient(ellipse 70% 40% at 50% 50%, #fff3d6f0 0%, #ffd99a66 45%, #ffd99a00 75%); }
+/* タコの後ろの丸い光だまりはやめる（部屋の明かりと二重になって不自然なため） */
+.scene .slot::before { display: none; }
+
+/* 夜の色かぶりを「部屋の外」と「部屋の中」で分ける。外は青く沈め、明かりの点いた部屋の中は暖かく少し暗くするだけ */
+.light-tint[data-tint="night"] {
+  -webkit-mask-image: url('/assets/outside_mask.png'); mask-image: url('/assets/outside_mask.png');
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.light-tint[data-tint="night-room"] {
+  background: #b9a4a2;
+  -webkit-mask-image: url('/assets/room_mask.png'); mask-image: url('/assets/room_mask.png');
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.scene[data-light="night"] .light-tint[data-tint="night-room"] { opacity: 1; }
+.scene[data-light="night"] .octo-rig { filter: brightness(.94) saturate(.95); }
+
+/* =========================================================
+   背景の拡大・縮小と移動（#scene-viewport が枠、#scene に transform を掛ける）
+   ========================================================= */
+.scene-viewport {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;           /* 拡大していないときは、指でページをスクロールできる */
+}
+.scene-viewport[data-zoomed="true"] { touch-action: none; cursor: grab; }
+.scene-viewport[data-dragging="true"] { cursor: grabbing; }
+.scene-viewport[data-dragging="true"] .worker-actor { pointer-events: none; }
+.scene-viewport .scene { transform-origin: 0 0; will-change: transform; }
+.zoom-controls {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+}
+.zoom-controls button {
+  min-width: 34px;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid #b18b8f;
+  border-radius: 8px;
+  background: #4d394de6;
+  color: #ffe8dc;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+.zoom-controls button:hover { background: #6a4f63; }
+
+/* =========================================================
+   街の中のオフィス：背景は横長（3:2）の街。枠（#scene-viewport）は正方形のまま、
+   最初はオフィスが今までと同じ大きさで見える位置に置き、＋・－・ドラッグで動かす
+   ========================================================= */
+.scene-viewport {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  /* 街全体を表示したときの上下の余白：上は空、下は道路の色（照明に合わせて変える） */
+  background: linear-gradient(180deg, #84c3fd 0 50%, #656480 50% 100%);
+  transition: background var(--light-fade, 1s) ease;
+}
+.scene-viewport:has(.scene[data-light="dusk"]) { background: linear-gradient(180deg, #a9a6c4 0 50%, #5b4a62 50% 100%); }
+.scene-viewport:has(.scene[data-light="night"]) { background: linear-gradient(180deg, #4b58a8 0 50%, #2a2a4c 50% 100%); }
+.scene-viewport .scene { position: absolute; left: 0; top: 0; width: 150%; aspect-ratio: 3 / 2; }
+.scene .slot::after { width: 10.7cqw; }
+
+/* タコの後ろ・足もとの丸い光（::after）もやめる。部屋の明かり（.light-room）がタコも照らすため */
+.scene .slot::after { display: none; }
+
+/* スプライトシートで動く役割は、小物もシートに描いてあるので CSS の小物は出さない */
+.octo-body[data-sprite="sheet"] ~ .octo-prop { display: none !important; }
+
+.zoom-controls button:disabled { opacity: .4; cursor: default; }

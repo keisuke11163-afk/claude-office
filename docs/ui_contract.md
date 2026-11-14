@@ -1,317 +1,243 @@
-# Claude Office 画面の「見た目」契約書（UI Contract）
+# Claude Factory 画面の「見た目」契約書（UI Contract）
 
-この資料だけ読めば、`static/style.css` とキャラクターの SVG を作れるようにまとめています。
-画面の動き（`static/app.js`）と HTML の骨組みは別の担当が作っています。**このあと説明する class / id / data- 属性が「約束」で、JS はこれ以外の目印を使いません。**
+この資料だけ読めば、`static/style.css` と画像を作り直せるようにまとめています。
+画面の動き（`static/app.js`）は別の担当が作っています。**このあと説明する id / class / data- 属性が「約束」で、JS はこれ以外の目印を使いません。**
+
+> 2026-11-14：猫のデスク（`section.desk` / `div.seat` / `template#cat-…`）から、
+> タコの工房（ジオラマ背景 + `div.slot` + `button.worker-actor`）に作り直しました。
+> 旧版の約束は git の履歴（`feature/office-ui` の 5a878c6 まで）にあります。
+>
+> 2026-11-15：照明（昼・夕・夜）とタコのモーションを追加しました（「6. 照明レイヤー・モーションのしくみ」）。
 
 ## 1. 変えてよいもの・変えてはいけないもの
 
 | 対象 | 変えてよいか |
 |---|---|
 | `static/style.css` | **全部変えてよい**（全面書き換え OK） |
-| `static/index.html` の template 部分（`<!-- ===== キャラクター（ChatGPT が差し替える範囲 ここから） ===== -->` から `（ここまで）` まで）の **template の中身** | 変えてよい（SVG を差し替える）。template の `id` は変えない |
-| 上記の範囲に template を **追加** する（`cat-<agent_type>` の形） | してよい（「6. キャラクター」） |
-| `static/index.html` のほかの部分 | **変えない** |
-| `static/app.js` | **変えない** |
-| class / id / data- 属性の名前と値の種類 | **変えない**（JS が使っている） |
-| 新しいファイル（画像・フォントなど） | **自分では足さない**。必要なら依頼する（「8. CSP の制約」） |
+| `static/assets/` の画像 | 同じファイル名・同じ大きさの比率なら差し替えてよい |
+| `static/index.html` の文字・飾り・並び | 変えてよい。ただし「3. 部品ごとの目印」の id / class / data- 属性は残す |
+| `static/app.js` | **変えない**（直したいときは依頼する） |
+| id / class / data- 属性の名前と値の種類 | **変えない**（JS が使っている） |
+| 新しいファイル（画像・フォントなど） | 足してよいが、`server.py` の `STATIC_FILES` への登録が必要（`docs/api.md` の「7. ファイルを足す方法」） |
+
+`index.html` を変えたら、`tests/js/app_test.html` の「ここから」〜「ここまで」も同じ中身にします（テストが確かめます）。
 
 ## 2. 画面の全体構造
 
 ```
 body[data-mode="live"|"mock"]
-├─ header.page-header
-│   ├─ h1                                  タイトル
-│   └─ p#connection-status[data-connection]  接続状態
-├─ main
-│   ├─ section.office                       デスクの並ぶ床
-│   │   └─ section.desk[data-role][data-count]  × 6（固定の順）
-│   │       ├─ h2.desk-label                役割名（固定の文字）
-│   │       └─ div.desk-seats
-│   │           └─ div.seat[data-state …]   × 0人以上（JS が出し入れ）
-│   │               ├─ div.cat              キャラクター（template の複製）
-│   │               └─ div.nameplate        名札（absent には無い）
-│   └─ section.activity
-│       ├─ h2
-│       └─ ol#activity-log
-│           └─ li.log-entry[data-kind]      × 最大50件（新しい順）
-└─ template#cat-…                           キャラクターの型（表示されない）
+└─ div.layout#app
+    ├─ aside.rail                       左のメニュー
+    │   ├─ button.nav-item[data-scroll]   押すと #workshop / #crew / #journal へ移動
+    │   └─ #side-crew / #side-events      人数・件数（JS が文字を入れる）
+    └─ div.stage-column
+        ├─ header.topbar
+        │   ├─ #connection-status[data-connection]  接続状態
+        │   └─ button#light-toggle                 照明の切り替え（昼→夕→夜→昼。文字と aria-label に今と次のモード）
+        └─ main
+            ├─ section.workshop#workshop
+            │   ├─ #scene-population               "N WORKERS"
+            │   └─ div.scene-viewport#scene-viewport[data-zoomed]  正方形の枠。中の #scene を JS が拡大・縮小・移動（transform）
+            │       ├─ div.scene#scene[data-light="day"|"dusk"|"night"][.night][data-city-blink?]  街全体（3:2）
+            │       │   ├─ img.background-art            街の中のオフィスビルの背景（1536×1024、オフィスは中央の x=256〜1280）
+            │       │   ├─ div.light-layer#light-layer   照明レイヤー（aria-hidden。「6. 照明レイヤー・モーションのしくみ」）
+            │       │   │   ├─ div.light-tint[data-tint="dusk"|"night"|"night-room"]  色かぶり（multiply。夜は部屋の外と中で分ける）
+            │       │   │   ├─ div.light-moon                              月明かり（screen）
+            │       │   │   ├─ div.light-city > img[data-city] × 5          街の窓の明かり（夜。a/b/c は点滅、beacon は屋上ランプ）
+            │       │   │   └─ span.light-spot[data-light-kind][data-spot] × 15  天井灯・画面・サーバー・入口の光（screen）
+            │       │   ├─ div.slot[data-role] × 6       作業場所（left/top は1匹目の足もと。2匹目は --seat2-dx/dy、入口は --door-x/y）
+            │       │   │   ├─ button.worker-actor × 0人以上（JS が出し入れ）
+            │       │   │   └─ span.bubble.overflow-badge   「ほか○匹」（3匹目から）
+            │       │   ├─ img.foreground-art            手前の家具（机・受付・検査台の前面）。タコの下半分を隠す
+            │       │   ├─ div.foreground-tint           手前の家具に掛ける夕方・夜の色（家具の形で切り抜く）
+            │       │   ├─ img.light-room                部屋の明かり（screen。家具とタコも照らす）
+            │       │   ├─ div.scene-fx#scene-fx         見た目専用のレイヤー（退室の影武者 div.octo-ghost を JS が出し入れ）
+            │       │   └─ div#scene-empty[.visible]     誰もいないときの案内
+            │       └─ div.zoom-controls             #zoom-in / #zoom-out / #zoom-office / #zoom-reset（拡大の上限はオフィスが枠いっぱい、下限は街全体）
+            ├─ aside.right-panels#crew
+            │   ├─ #crew-total                     "N 在室"
+            │   ├─ div#worker-list                 役割ごとの button.crew-row × 6（JS が毎回作り直す。hover / focus で工房を強調）
+            │   └─ #manager-quote / button#next-quote  工場長のひとこと
+            ├─ div.summary-strip                 #summary-present / #summary-enter / #summary-leave
+            └─ div.bottom-grid
+                ├─ ol#activity-log               業務日誌（li.log-entry、新しい順、最大50件）
+                └─ div#worker-detail             選んだタコの詳細（JS が毎回作り直す。「動き」の欄は .detail-motion）
+                    └─ div#mock-controls[hidden]   モックのときだけ出る
+                        （#mock-enter / #mock-leave / #mock-light / #mock-work / #mock-react / #mock-walk）
 ```
 
-## 3. 部品ごとの目印一覧
+## 3. 部品ごとの目印
 
-### body
+### 作業場所 `div.slot[data-role]`
 
-| 目印 | 値 | 意味 |
-|---|---|---|
-| `data-mode` | `live` / `mock` | 本番表示か、偽データのモック表示か |
-
-### 接続状態 `p#connection-status`
-
-| 目印 | 値 | 表示される文字 |
-|---|---|---|
-| `data-connection` | `connecting` | 接続中… |
-| | `open` | 接続済み（モック時は「モック表示中」） |
-| | `reconnecting` | 再接続中 |
-| | `closed` | 切断（再読み込みしてください） |
-
-### デスク `section.desk`
-
-固定の順で6つ並びます。
-
-| `data-role` | 見出し `.desk-label` の文字 |
+| `data-role` | 入る agent_type |
 |---|---|
-| `researcher` | 調査担当 |
-| `coder` | コーディング担当 |
-| `test-runner` | テスト担当 |
-| `code-reviewer` | レビュー担当 |
-| `code-explainer` | 解説担当 |
-| `other` | その他（上の5つ以外の agent_type はすべてここ。例 `Explore`, `general-purpose`） |
+| `researcher` / `coder` / `test-runner` / `code-reviewer` / `code-explainer` | 同じ名前の agent_type |
+| `other` | 上のどれでもない agent_type（`Explore`、`general-purpose` など） |
 
-| 目印 | 値 | 意味 |
-|---|---|---|
-| `data-role` | 上の表の6つ | デスクの役割 |
-| `data-count` | `"0"`, `"1"`, `"2"` … | 在席人数（`entering` と `present` の数。`leaving` は数えない） |
+- 6つとも `index.html` に必要です（check_static が確かめます）
+- 位置は CSS の `.slot[data-role="…"] { left: …%; top: …% }` で、背景の上に置きます
+- 1つの作業場所に絵を出すのは **2匹まで**（役割ごとの居場所2か所）。3匹目からは `hidden` が付き、`.overflow-badge` に「ほか○匹」が出ます
 
-- 中の `div.desk-seats` に席が並びます。同じ役割の人が同時に複数いれば、席も複数になります。並べ方（横並び・折り返しなど）は CSS で自由に決めてください。
+### タコ `button.worker-actor`
 
-### 席 `div.seat`
-
-| 目印 | 値 | 意味 |
-|---|---|---|
-| `data-state` | `entering` / `present` / `leaving` / `absent` | 状態（「4. 状態の切り替え」） |
-| `data-role` | デスクの `data-role` と同じ | どのデスクの席か（absent の席には付かない） |
-| `data-agent-type` | agent_type そのまま（例 `researcher`, `Explore`, `general-purpose`） | 役割の英名（absent には付かない） |
-| `data-model` | モデル名そのまま（例 `haiku`, `sonnet`, `opus`, `不明`, `claude-xxx`） | モデル（absent には付かない） |
-| `data-agent-id` | 英数字17文字前後 | エージェントの ID（見た目には使わないこと） |
-
-### 名札 `div.nameplate` の中身（この順で並ぶ）
-
-| 要素 | 中身の例 | 長さの目安 |
-|---|---|---|
-| `span[data-field="role_label"]` | `調査担当` / `Explore` | 日本語なら8文字程度。roles.json に無い役割は英名がそのまま入り、20文字程度のこともある |
-| `span[data-field="agent_type"]` | `researcher` / `general-purpose` | 英数字とハイフン。15〜20文字程度 |
-| `span[data-field="model"]` | `haiku` / `sonnet` / `opus` / `不明` / `claude-xxx` | 普通は5〜6文字だが、上の3つ以外の長い名前（20文字程度）も来る |
-| `time[data-field="started_at"]` | `03:48:22`（`datetime="2026-11-14T03:48:22"`） | 8文字固定 |
-| `span[data-field="elapsed"]` | `0:05`, `12:34`, `1:02:03` | 入室からの経過時間。1時間未満は `m:ss`、1時間以上は `h:mm:ss`。1秒ごとに書き換わる。時刻が読めないときは `-:--` |
-
-- 表示する項目は、API から届くものだけです。名札に新しい項目は増やせません（CSS の `::before` / `::after` で「モデル:」のような飾りの文字を足すのは OK）。
-- 長い文字ではみ出さないよう、`overflow-wrap: anywhere` や `text-overflow: ellipsis` を使ってください。
-- 経過時間は1秒ごとに文字数が変わるので、`font-variant-numeric: tabular-nums` を付けると表示がガタつきません。
-
-### キャラクター `div.cat`
-
-- template（「6. キャラクター」）を複製した `svg.cat-svg` が1つ入ります。
-- 大きさは `.cat` と `.cat-svg` の CSS で決めてください（SVG 側に width/height は書かない）。
-
-### 入退室ログ `ol#activity-log`
-
-`li.log-entry` が新しい順に最大50件並びます。
-
-| 目印 | 値 | いつ |
-|---|---|---|
-| `data-kind` | `enter` | 入室 |
-| | `leave` | 退室 |
-| | `update` | 在席中の人のモデル名が変わった（入室時と同じモデルなら出ない） |
-| | `system` | 接続が切れた・再接続した・モックを開始した など |
-| `data-reason` | `timeout`（leave のときだけ付くことがある） | 時間切れで自動退室させた |
-
-中身（この順）：
-- `time[data-field="time"]`：`03:48:22`（`datetime="2026-11-14T03:48:22.871"`）
-- `span[data-field="message"]`：文章。40文字程度まで。例：
-  - enter：`調査担当 が入室しました（haiku）`
-  - leave：`調査担当 が退室しました` / `調査担当 が退室しました（時間切れで自動退室）`
-  - update：`解説担当 のモデル: sonnet`
-  - system：`再接続（この間の履歴は抜けている可能性あり）`
-
-## 4. 状態の切り替え（席の data-state）
-
-| 状態 | いつ | 次の状態 |
-|---|---|---|
-| `entering` | 入室を受け取った直後 | **ENTER_MS = 600ms** 後に `present` |
-| `present` | 在席中。画面を開いた時点ですでにいた人は、最初からこの状態（アニメなし） | 退室を受け取ると `leaving` |
-| `leaving` | 退室を受け取った直後 | **LEAVE_MS = 600ms** 後に席が DOM から消える |
-| `absent` | デスクに1人もいない（席が1つも無い）ときに置かれる「不在」の席。中は `.cat` だけで、名札は無い | 誰か入室すると消える |
-
-- `entering` のまま `leaving` になることもあります（入ってすぐ出た場合）。
-- 不在の席は、`leaving` の席が消えたあとに置かれます（`leaving` 中はまだ置かれません）。
-- 再接続したときは全部の席を作り直します。この場合はアニメなしで、すぐ `present` / `absent` になります。
-- **JS は CSS のアニメ終了を待たずに、時間で切り替えます。** そのため次を守ってください。
-  - `entering` / `leaving` のアニメーション・トランジションは **600ms 以下**（おすすめ 500ms 以下）にする
-  - `leaving` のアニメは `animation-fill-mode: forwards` などで、終わった見た目を保つ（600ms で消えるまでに、元の見た目へ戻ってチラつかないように）
-  - `present` / `absent` には無限ループのアニメ（まばたき・しっぽ振りなど）を付けてよい
-  - `@media (prefers-reduced-motion: reduce)` のときはアニメを止める
-
-CSS の例：
-```css
-.seat[data-state="entering"] { animation: seat-enter 0.5s ease-out; }
-.seat[data-state="leaving"]  { animation: seat-leave 0.5s ease-in forwards; }
-.seat[data-state="absent"]   { opacity: 0.4; }
-@keyframes seat-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes seat-leave { from { opacity: 1; } to { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .seat { animation: none !important; }
-}
-```
-
-## 5. data- 属性で見た目を変える例
-
-次の属性は、見た目を変える条件として自由に使ってかまいません。
-
-```css
-/* モデルごとに名札の色を変える（3つ以外のモデルも来るので、既定の色も決めておく） */
-.seat [data-field="model"] { background: #ddd; }
-.seat[data-model="haiku"]  [data-field="model"] { background: #cde8e2; }
-.seat[data-model="sonnet"] [data-field="model"] { background: #d6e0f7; }
-.seat[data-model="opus"]   [data-field="model"] { background: #f2d6d6; }
-
-/* 役割ごとのデスクの色 */
-.desk[data-role="coder"] { border-color: #8ca8e8; }
-
-/* 誰もいないデスクを薄くする */
-.desk[data-count="0"] .desk-label { opacity: 0.6; }
-
-/* 接続状態 */
-#connection-status[data-connection="reconnecting"] { color: #b45f06; }
-
-/* ログの種類・時間切れ */
-.log-entry[data-kind="system"] { font-style: italic; }
-.log-entry[data-reason="timeout"] [data-field="message"] { color: #b00020; }
-
-/* モック表示中だけ目印を出す */
-body[data-mode="mock"] #connection-status::after { content: "（偽データ）"; }
-```
-
-## 6. キャラクター（template）
-
-### id 一覧（`index.html` の決められた範囲にある）
-
-| id | 使われる席 |
-|---|---|
-| `cat-researcher` | agent_type が researcher |
-| `cat-coder` | coder |
-| `cat-test-runner` | test-runner |
-| `cat-code-reviewer` | code-reviewer |
-| `cat-code-explainer` | code-explainer |
-| `cat-generic` | 上のどれにも当てはまらない agent_type（other デスクの人など） |
-| `cat-absent` | 不在の席 |
-
-- JS は agent_type を小文字にしてから `cat-<agent_type>` を探し、見つからなければ `cat-generic` を使います。
-- **追加してもよい**：例えば `<template id="cat-explore">` や `<template id="cat-general-purpose">` を足すと、その agent_type の人は自動でそのキャラになります（デスクは other のまま）。id には英小文字・数字・ハイフンだけを使ってください。
-
-### SVG の書き方の決まり
-
-各 template の中は、SVG 1つだけにします：
 ```html
-<template id="cat-researcher">
-  <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-    …図形…
-  </svg>
-</template>
-```
-
-- `class="cat-svg"` と `aria-hidden="true"` は必ず付ける
-- `viewBox="0 0 64 64"` を推奨（ほかの値でもよいが、全部そろえる）。`width` / `height` は書かない
-- **禁止**（CSP で動かない、または危険なため）：
-  - `style="…"` 属性
-  - SVG の中の `<style>` 要素
-  - `<script>`、`onload` などの `on…` 属性
-  - 外部の参照（`href="http…"`、外部の `<image>`、`<use href="外部ファイル">`）
-  - **`id` 属性**（席の数だけ複製されて id が重複するため）。そのため `url(#…)` を使うグラデーション・マスク・クリップ・`<use href="#…">` も使えない
-  - `<foreignObject>`
-- 色は `fill` / `stroke` などの属性で書くか、図形に class を付けて `style.css` で指定する（例 `class="cat-body"` → `.seat[data-model="opus"] .cat-body { fill: … }`）
-  - CSS の指定は `fill` 属性より優先されます。属性は「既定の色」として書いておくと安全です
-- 状態で動かしたい部分には class を付けておき、`style.css` で動かす（例 `.seat[data-state="present"] .cat-tail { animation: … }`）。`transform-origin` を使うときは、`transform-box: fill-box` も一緒に指定すると扱いやすい
-- 図形は `<circle>` `<ellipse>` `<rect>` `<path>` `<polygon>` `<line>` `<g>` などの基本的なものだけで描く
-
-## 7. 各状態の DOM の例
-
-### デスク全体（誰もいない＝不在）
-```html
-<section class="desk" data-role="researcher" data-count="0">
-  <h2 class="desk-label">調査担当</h2>
-  <div class="desk-seats">
-    <div class="seat" data-state="absent" aria-label="不在">
-      <div class="cat"><svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true">…cat-absent の中身…</svg></div>
+<button class="worker-actor" type="button" data-agent-id="…" data-state="present"
+        data-role="coder" data-agent-type="coder" data-model="sonnet"
+        data-motion="idle" data-facing="right" data-frame="0"
+        aria-label="コーディング担当、モデル sonnet、詳細を表示">
+  <div class="octo-rig">                          <!-- 向き（左右反転）と歩きの揺れ -->
+    <div class="octo-body" data-sprite="image">   <!-- 呼吸。シートがあるときは data-sprite="sheet" -->
+      <img class="octo-sprite" src="/assets/octopus/coder.png" alt="">
+      <span class="octo-lids" aria-hidden="true"></span>   <!-- まばたき（::before / ::after が左右のまぶた） -->
     </div>
+    <span class="octo-prop" aria-hidden="true"></span>     <!-- 役割の小物（CSS で描く） -->
   </div>
-</section>
+  <span class="octo-mark" aria-hidden="true"></span>       <!-- 記号（! ♪ 汗 ✓ ? …）。反転しないよう枠の外 -->
+  <span class="bubble">コーディング担当</span>
+</button>
 ```
 
-### entering の席
+| 属性・class | 値 |
+|---|---|
+| `data-state` | `entering` / `present` / `leaving`（「4. 状態の切り替え」） |
+| `data-role` | 入っている作業場所の役割 |
+| `data-agent-type` / `data-model` | サーバーから届いた値そのまま（`不明` や `claude-xxx` も来る） |
+| `data-motion` | 見た目の動き：`idle`（待機）/ `walk`（歩行）/ `work`（作業）/ `react`（リアクション） |
+| `data-pose` | `work` のときだけ。役割ごとのポーズ（下の表） |
+| `data-react` | `react` のときだけ。`surprise`（!）/ `joy`（♪）/ `trouble`（汗） |
+| `data-facing` | `right`（絵のまま）/ `left`（左右反転） |
+| `data-frame` | スプライトシートの行（モーションごと）。1枚絵のときは常に `"0"` |
+| `data-visual` | 見た目専用：`walk-in`（入口から歩いてくる途中）/ `ghosted`（退室中で、影武者が代わりに歩いている）/ `measure`（位置を測る一瞬）。無いのが普通 |
+| style の `--walk-from-x` / `--walk-from-y` / `--walk-ms` / `--blink-ms` / `--blink-delay` | JS が CSSOM で入れる CSS 変数（歩き始めのずれ・まばたきの間隔） |
+| `.selected` | 詳細に表示中のタコ |
+| `.is-highlighted` | 一覧の行に hover / focus している役割のタコ（作業場所 `.slot` にも付く） |
+| `hidden` | 5匹目以降で絵を出さない（CSS で `display: none` にする） |
+
+- 絵は役割で決まります：`/assets/octopus/<役割>.png`（`other` は `general.png`）。button の中の**最初の img** が本体の絵です
+- 不在の役割の一覧には `/assets/octopus/absent.png`、工場長の欄には `manager.png` を使います
+
+仕事のポーズ（`data-pose`。進捗や成否は表さない、役割の演出です）：
+
+| 役割 | `data-pose` |
+|---|---|
+| `researcher` | `magnify`（虫眼鏡のきらめき）/ `book`（本をめくる） |
+| `coder` | `type`（キーを打つ・キーの粒）/ `monitor`（モニターを見る） |
+| `test-runner` | `check`（✓ を付ける）/ `cheer`（喜ぶ） |
+| `code-reviewer` | `redpen`（赤ペンで線を引く）/ `tilt`（首をかしげる・?） |
+| `code-explainer` | `point`（指し棒で図を示す） |
+| `other` | `sort`（書類を整理する）/ `think`（考える・…） |
+
+### 照明 `div.light-layer` と `span.light-spot`
+
+| 目印 | 値 |
+|---|---|
+| `#scene[data-light]` | `day` / `dusk` / `night`（JS が書く。`night` のときは互換のため `.night` も付く） |
+| `.light-tint[data-tint]` | `dusk` / `night`（どちらか1つが見える） |
+| `.light-spot[data-light-kind]` | `window` / `lantern` / `candle` / `door` |
+| `.light-spot[data-spot]` | 光の場所の名前（`window-left-1` など）。位置は style.css の「★」の CSS 変数で決める |
+
+### 退室の影武者 `div.octo-ghost`（`#scene-fx` の中）
+
 ```html
-<div class="seat" data-state="entering" data-role="researcher" data-agent-id="a9e3ac8774e52f507" data-agent-type="researcher" data-model="haiku">
-  <div class="cat"><svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true">…cat-researcher の中身…</svg></div>
-  <div class="nameplate">
-    <span data-field="role_label">調査担当</span>
-    <span data-field="agent_type">researcher</span>
-    <span data-field="model">haiku</span>
-    <time data-field="started_at" datetime="2026-11-14T03:48:22">03:48:22</time>
-    <span data-field="elapsed">0:00</span>
-  </div>
+<div class="octo-ghost" aria-hidden="true" data-agent-id="…" data-role="coder" data-motion="walk" data-facing="left">
+  <div class="octo-rig">…（タコの .octo-rig の複製。id・button・名札は無い）</div>
 </div>
 ```
 
-### present の席（other デスクで、長い名前・知らないモデル）
+- style の `--ghost-x` / `--ghost-y` / `--ghost-w`（出発点と幅）、`--walk-to-x` / `--walk-to-y`（入口までのずれ）、`--walk-ms` を JS が入れます
+
+### 業務日誌 `li.log-entry`
+
 ```html
-<section class="desk" data-role="other" data-count="1">
-  <h2 class="desk-label">その他</h2>
-  <div class="desk-seats">
-    <div class="seat" data-state="present" data-role="other" data-agent-id="mock-7" data-agent-type="general-purpose" data-model="claude-xxx">
-      <div class="cat"><svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true">…cat-generic の中身…</svg></div>
-      <div class="nameplate">
-        <span data-field="role_label">general-purpose</span>
-        <span data-field="agent_type">general-purpose</span>
-        <span data-field="model">claude-xxx</span>
-        <time data-field="started_at" datetime="2026-11-14T02:40:00">02:40:00</time>
-        <span data-field="elapsed">1:08:22</span>
-      </div>
-    </div>
-  </div>
-</section>
+<li class="log-entry" data-kind="leave" data-reason="timeout">
+  <time datetime="2026-11-14T10:10:00.000">10:10:00</time>
+  <span class="log-sign">↰</span>
+  <span class="log-msg">コーディング担当 が退室しました（時間切れで自動退室）</span>
+</li>
 ```
 
-### leaving の席
-`data-state="leaving"` になるだけで、中身は present と同じです。600ms 後に要素ごと消えます。
-```html
-<div class="seat" data-state="leaving" data-role="coder" data-agent-id="…" data-agent-type="coder" data-model="sonnet">…present と同じ中身…</div>
+- `data-kind`：`enter` / `leave` / `update` / `system`
+- `data-reason="timeout"`：時間切れの退室だけに付く
+- ログが空のときは `#activity-log:empty::before` で案内を出す
+
+### 接続状態 `#connection-status[data-connection]`
+
+`connecting` / `open` / `reconnecting` / `closed` の4つ。モックのときは `open` で「モック表示中」。
+
+## 4. 状態の切り替え（タコの data-state）
+
+| 状態 | いつ | 長さ |
+|---|---|---|
+| `entering` | enter が届いた直後 | 500ms 後に `present` へ（CSS の `enter` アニメも 0.5s） |
+| `present` | 在席中・snapshot で置いたとき | — |
+| `leaving` | leave が届いた直後 | 500ms 後に DOM から消える（CSS の `leave` アニメも 0.5s、`forwards`） |
+
+- `leaving` のタコは人数に数えず、一覧からも外れますが、アニメが終わるまでは画面に残ります
+- タコの要素は1人1個を使い回し、ほかのイベントが届いても作り直しません（アニメが途中で止まらない）
+- `prefers-reduced-motion: reduce` のときはアニメを止め、`leaving` は薄く表示します
+- 歩いて入退室する見た目（1.4 秒）は `data-state` とは別に動きます（「6. 照明レイヤー・モーションのしくみ」）
+
+## 5. CSP（セキュリティ設定）の制約
+
+- `<style>`、`style="…"`、`<script>…</script>`、`onclick="…"` は使えません
+- JS が位置などを渡すときは `element.style.setProperty("--名前", 値)`（CSSOM）で CSS 変数を入れます。これは CSP で止められません
+- 外部のフォント・画像・CDN は使えません。画像は `static/assets/` に置いて `STATIC_FILES` に登録します
+- URL は `/` で始めて書きます（相対パスは不可）。CSS の `url()`、HTML の `src` / `href`、JS の `"/assets/…png"` も check_static が登録を確かめます
+
+## 6. 照明レイヤー・モーションのしくみ
+
+> 2026-11-15：照明（昼・夕・夜）とタコのモーションを追加しました。
+> これまでは「CSS とテンプレートで見た目を全部決め、JS は data-state を付け外すだけ」でしたが、
+> 次の点が変わりました。
+>
+> - 夜は背景に `filter: brightness(…)` をかける方式をやめ、**背景・照明レイヤー・タコ・UI を別々の層**にしました（画面全体を暗くする filter は使わない）
+> - タコの中身が `img` 1枚から `div.octo-rig > div.octo-body > img + まぶた` と小物・記号に増えました（`img` と `.bubble` はそのまま残っています）
+> - **在席状態（`data-state`）と見た目（`data-motion` / `data-visual`）を分けました**。JS が見た目用の data- 属性と CSS 変数も書きます
+> - 退室の歩き去りは、本物のタコとは別の「影武者」を `#scene-fx` に置いて見せます
+
+### 層の重なり（下から）
+
+1. `img.background-art`（背景の絵。filter はかけない）
+2. `.light-layer` の中身（`z-index: 1`）：色かぶり（`mix-blend-mode: multiply`）→ 月明かり・光スポット（`screen`）。`.light-layer` 自体には z-index / opacity を付けない（付けると背景と混ざらなくなる）
+3. `.slot`（`z-index: 2`）：タコ（`::before` / `::after` の光だまりは使わない）
+4. `.foreground-art` → `.foreground-tint` → `.light-room`（`z-index: 2`、DOM の順で `.slot` より上）：手前の家具、その色かぶり、部屋の明かり
+5. `#scene-fx`（`z-index: 3`）：退室の影武者
+6. `#scene-empty`（`z-index: 4`）
+
+- 照明・影武者はすべて `pointer-events: none`。UI（パネル・ボタン・文字）は暗くなりません
+- 切り替えは各層の `opacity` を `transition`（`--light-fade`、既定 1 秒）で変えます。昼はほぼ透明、夕は斜めのオレンジの色かぶりと弱い窓明かり、夜は青い色かぶり + 月明かりと、窓・ランタン・ろうそく・デスクライトの暖色
+- 光の位置・大きさ、入口の位置（`--door-x` / `--door-y`）は style.css の「★ 位置と色の調整はここだけ」にまとめています。入口の位置は JS も読みます（歩く先）
+- 選んだ照明は `localStorage` の `claude-factory-light` に保存します（使えなくても動きます）
+
+### モーションと在席状態
+
+| | 在席状態 `data-state` | 見た目 `data-motion` / `data-visual` |
+|---|---|---|
+| 入室 | `entering` → 500ms で `present`（今までどおり） | `walk` + `walk-in`：入口から席まで 1.4 秒かけて歩き、着いたら `idle` |
+| 在席中 | `present` | モーション指揮役が `idle` / `work` / `react` を切り替える |
+| 退室 | `leaving` → 500ms で DOM から消える（今までどおり） | 本物は `ghosted`（見えない）。`#scene-fx` の影武者が入口まで歩き、1.4 秒ほどで消える |
+| snapshot | 全員を `present` で置き直す | `#scene-fx` を空にし、見た目用のタイマーも止めてから置き直す（歩きなし） |
+
+- **モーション指揮役**：`setInterval` 1本（1.7 秒ごと）で、`present`・`hidden` でない・歩いていないタコのうち一部（約 35%）だけ、重み付きランダムで動きを変えます。DOM は作り直さず data- 属性を書くだけです。タブが非表示（`document.hidden`）のときは止まります
+- 動きはすべて CSS アニメーション（transform / opacity 中心）。`requestAnimationFrame` で毎フレーム DOM を書くことはしません
+- SSE には進捗や成否が無いので、仕事モーションは**役割を表す演出**です。「成功」「完了」などの文字は出しません（記号だけ）
+- 5匹目以降（`hidden`）は歩かず、指揮の対象にもなりません。退室するときは見えるようになってから歩き去ります
+
+### スプライトシート（将来）
+
+- `app.js` の `SPRITE_SHEETS` に役割ごとの `{ url, frameCount, fps, rowByMotion }` を書くと、その役割は `.octo-body[data-sprite="sheet"]` になり、1行 = 1モーションのシートを `steps()` で再生します（`data-frame` はシートの行）
+- 設定が無い役割は、今の1枚絵 + CSS の仮アニメ（呼吸・まばたき・足もとの揺れ・よちよち）のままです。シートの画像は `STATIC_FILES` への登録が必要です
+
+### 動きを減らす設定（`prefers-reduced-motion: reduce`）
+
+- すべてのアニメと transition を止め（4行目の `!important` のルール）、歩き・影武者・モーション指揮もしません
+- 照明の点灯そのものは静止した状態で残ります。タコは役割の小物が見える仕事のポーズで止まり、`leaving` は薄く表示します
+
+## 7. 確認のしかた
+
 ```
-
-### ログ
-```html
-<ol id="activity-log">
-  <li class="log-entry" data-kind="system"><time data-field="time" datetime="2026-11-14T03:50:10.002">03:50:10</time><span data-field="message">再接続（この間の履歴は抜けている可能性あり）</span></li>
-  <li class="log-entry" data-kind="leave" data-reason="timeout"><time data-field="time" datetime="2026-11-14T03:49:30.100">03:49:30</time><span data-field="message">テスト担当 が退室しました（時間切れで自動退室）</span></li>
-  <li class="log-entry" data-kind="leave"><time data-field="time" datetime="2026-11-14T03:49:01.464">03:49:01</time><span data-field="message">解説担当 が退室しました</span></li>
-  <li class="log-entry" data-kind="update"><time data-field="time" datetime="2026-11-14T03:48:46.594">03:48:46</time><span data-field="message">解説担当 のモデル: sonnet</span></li>
-  <li class="log-entry" data-kind="enter"><time data-field="time" datetime="2026-11-14T03:48:46.593">03:48:46</time><span data-field="message">解説担当 が入室しました（sonnet）</span></li>
-</ol>
+python tools/check_static.py static      # 決まりを守っているか
+python -m unittest discover -s tests     # app.js の動き（Chrome / Edge があれば）も含めた全テスト
+python server.py                         # http://localhost:8765/#mock でモック、/ で本番
 ```
-
-### 接続状態（4つ）
-```html
-<p id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</p>
-<p id="connection-status" data-connection="open" role="status" aria-live="polite">接続済み</p>
-<p id="connection-status" data-connection="reconnecting" role="status" aria-live="polite">再接続中</p>
-<p id="connection-status" data-connection="closed" role="status" aria-live="polite">切断（再読み込みしてください）</p>
-```
-（モック時は `data-connection="open"` で、文字は `モック表示中`）
-
-## 8. CSP（セキュリティ設定）の制約
-
-画面には `Content-Security-Policy: default-src 'self'; …` が付いています。この設定では、同じサーバーから読み込んだものしか使えません。
-
-- 外部の URL は使えません（CDN の CSS、Google Fonts などの外部フォント、外部画像、`@import url(https://…)`）
-- インラインの style（`style="…"` 属性、`<style>` 要素）は動きません。CSS は全部 `style.css` に書いてください
-- `url(data:…)` の画像（data URI）も `default-src 'self'` によりブロックされるので使えません
-- フォントは、OS に入っているものを `font-family` で指定してください（例 `system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif`）
-- **画像やフォントのファイルを足したいとき**は、`static/` に置くだけでは読めません（サーバーの `STATIC_FILES` への登録が必要で、登録の無い URL は 404 になります）。ファイル名と用途をそえて、こちらに依頼してください
-
-## 9. 確認のしかた
-
-1. サーバーを起動：`python server.py`
-2. ブラウザで **http://127.0.0.1:8765/#mock** を開く
-   - 偽のイベントが数秒おきに流れます（全デスク・その他デスク・同じ役割の複数在席・時間切れの退室・知らないモデル名・1時間以上の経過時間を含む。同時に最大6人程度）
-   - サーバーには接続しません。`#mock` を付けたり外したりしたら、ページを再読み込みしてください
-3. 本番表示は **http://127.0.0.1:8765/**
-4. ブラウザの開発者ツールの Console に CSP の赤いエラーが出ていないか確認してください（出ていたら禁止事項に当たっています）
-5. OS の「視差効果を減らす」や「アニメーションを減らす」設定をオンにして、アニメが止まるかも確認してください

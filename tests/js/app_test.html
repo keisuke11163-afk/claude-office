@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Claude Office 動作テスト</title>
+  <title>Claude Factory 動作テスト</title>
   <link rel="stylesheet" href="../../static/style.css">
   <!-- テスト中は本物の /stream に接続しない（file:// では失敗し、「切断」の記録がログに混ざるため）。
        app.js より前に置いて、EventSource の代わりに何もしない偽物を使う -->
@@ -18,108 +18,96 @@
   <script src="app_test.js" defer></script>
 </head>
 <body data-mode="live">
-  <!-- index.html と同じ構造（テスト用にコピー） -->
-  <header class="page-header">
-    <h1>Claude Office 動作テスト</h1>
-    <p id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</p>
-  </header>
-
-  <main>
-    <section class="office" aria-label="デスク">
-      <section class="desk" data-role="researcher" data-count="0">
-        <h2 class="desk-label">調査担当</h2>
-        <div class="desk-seats"></div>
-      </section>
-      <section class="desk" data-role="coder" data-count="0">
-        <h2 class="desk-label">コーディング担当</h2>
-        <div class="desk-seats"></div>
-      </section>
-      <section class="desk" data-role="test-runner" data-count="0">
-        <h2 class="desk-label">テスト担当</h2>
-        <div class="desk-seats"></div>
-      </section>
-      <section class="desk" data-role="code-reviewer" data-count="0">
-        <h2 class="desk-label">レビュー担当</h2>
-        <div class="desk-seats"></div>
-      </section>
-      <section class="desk" data-role="code-explainer" data-count="0">
-        <h2 class="desk-label">解説担当</h2>
-        <div class="desk-seats"></div>
-      </section>
-      <section class="desk" data-role="other" data-count="0">
-        <h2 class="desk-label">その他</h2>
-        <div class="desk-seats"></div>
-      </section>
-    </section>
-
-    <section class="activity" aria-labelledby="activity-title">
-      <h2 id="activity-title">入退室ログ</h2>
-      <ol id="activity-log"></ol>
-    </section>
-  </main>
-
-  <!-- キャラクターの template（index.html と同じ中身） -->
-  <template id="cat-researcher">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#77b8b0"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#77b8b0"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#77b8b0"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-coder">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#8ca8e8"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#8ca8e8"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#8ca8e8"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-test-runner">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#e8b66b"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#e8b66b"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#e8b66b"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-code-reviewer">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#dc9292"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#dc9292"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#dc9292"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-code-explainer">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b5a0e3"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b5a0e3"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b5a0e3"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-generic">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="#b3b9b7"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="#b3b9b7"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="#b3b9b7"/>
-      <circle class="cat-eye" cx="25" cy="34" r="2.5" fill="#24303b"/>
-      <circle class="cat-eye" cx="39" cy="34" r="2.5" fill="#24303b"/>
-    </svg>
-  </template>
-  <template id="cat-absent">
-    <svg viewBox="0 0 64 64" class="cat-svg" aria-hidden="true" focusable="false">
-      <polygon class="cat-ear" points="14,28 17,6 30,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
-      <polygon class="cat-ear" points="50,28 47,6 34,18" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
-      <circle class="cat-head" cx="32" cy="36" r="20" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="4 3"/>
-    </svg>
-  </template>
+<!-- ここから static/index.html の body と同じ（テスト用にコピー。index.html を変えたらここも直す） -->
+<div class="layout" id="app">
+  <aside class="rail" aria-label="メインメニュー">
+    <div class="logo"><span class="logo-mark" aria-hidden="true">▣</span><div><b>Claude<br>Factory</b><small>OCTOPUS WORKSHOP</small></div></div>
+    <div class="rail-caption">WORKSPACE</div>
+    <nav class="nav" aria-label="ページ内リンク">
+      <button type="button" class="nav-item chosen" data-scroll="workshop">⌂ <span>工房を見る</span></button>
+      <button type="button" class="nav-item" data-scroll="crew">♧ <span>作業員たち</span></button>
+      <button type="button" class="nav-item" data-scroll="journal">▤ <span>業務日誌</span></button>
+    </nav>
+    <div class="rail-caption">FACTORY STATUS</div>
+    <div class="rail-card"><span class="rail-label">現在の作業員</span><strong id="side-crew">0 <small>匹</small></strong><span class="rail-label">観測した入退室</span><strong id="side-events">0 <small>件</small></strong></div>
+    <div class="rail-message"><span class="asterisk">✳</span><p>今日もみんな、<br>ちょっと不思議に働いています。</p></div>
+    <span class="rail-foot">MADE FOR THE TINY WORKERS</span>
+  </aside>
+  <div class="stage-column">
+    <header class="topbar">
+      <div class="crumb">THE LITTLE FACTORY <span>/</span> 工房</div>
+      <div class="top-actions"><span class="chip" id="connection-status" data-connection="connecting" role="status" aria-live="polite">接続中…</span><button class="day-toggle" type="button" id="light-toggle" aria-label="照明：いまは昼。押すと夕方にします">☀ 昼 → 夕にする</button></div>
+    </header>
+    <main>
+      <div class="heading"><div><span class="eyebrow">WELCOME TO THE WORKSHOP</span><h1>小さなタコたちの開発工房。</h1><p>入室も退室も、ちょっとした物語になる場所。</p></div><span class="heading-stamp">✳<br>OPEN</span></div>
+      <div class="content-grid">
+        <section class="workshop" id="workshop" aria-label="工房のジオラマ">
+          <div class="scene-top"><span>✿ OFFICE BUILDING</span><span id="scene-population">0 WORKERS</span></div>
+          <div class="scene-viewport" id="scene-viewport" data-zoomed="false">
+            <div class="scene" id="scene" data-light="day">
+              <img class="background-art" src="/assets/workshop_background.png" alt="街角に建つ3階建てのオフィスビルの断面。左は雑居ビル、右は商店。3階は資料と説明、2階は開発、1階はロビーとテストのフロア。" draggable="false">
+              <div class="light-layer" id="light-layer" aria-hidden="true">
+                <div class="light-tint" data-tint="dusk"></div>
+                <div class="light-tint" data-tint="night"></div>
+                <div class="light-tint" data-tint="night-room"></div>
+                <div class="light-moon"></div>
+                <div class="light-city">
+                  <img data-city="base" src="/assets/city_lights_base.png" alt="" draggable="false">
+                  <img data-city="a" src="/assets/city_lights_a.png" alt="" draggable="false">
+                  <img data-city="b" src="/assets/city_lights_b.png" alt="" draggable="false">
+                  <img data-city="c" src="/assets/city_lights_c.png" alt="" draggable="false">
+                  <img data-city="beacon" src="/assets/city_lights_beacon.png" alt="" draggable="false">
+                </div>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-3f-c"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-2f-c"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-a"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-b"></span>
+                <span class="light-spot" data-light-kind="window" data-spot="ceiling-1f-c"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="screen-3f"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-5"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-6"></span>
+                <span class="light-spot" data-light-kind="screen" data-spot="monitor-7"></span>
+                <span class="light-spot" data-light-kind="server" data-spot="server"></span>
+                <span class="light-spot" data-light-kind="door" data-spot="door"></span>
+              </div>
+              <div class="slot" data-role="researcher" aria-label="調査担当の作業場所"></div>
+              <div class="slot" data-role="coder" aria-label="コーディング担当の作業場所"></div>
+              <div class="slot" data-role="test-runner" aria-label="テスト担当の作業場所"></div>
+              <div class="slot" data-role="code-reviewer" aria-label="レビュー担当の作業場所"></div>
+              <div class="slot" data-role="code-explainer" aria-label="解説担当の作業場所"></div>
+              <div class="slot" data-role="other" aria-label="その他の作業場所"></div>
+              <img class="foreground-art" src="/assets/workshop_foreground.png" alt="" aria-hidden="true" draggable="false">
+              <div class="foreground-tint" aria-hidden="true"><div data-tint="dusk"></div><div data-tint="night"></div></div>
+              <img class="light-room" src="/assets/room_light.png" alt="" aria-hidden="true" draggable="false">
+              <div class="scene-fx" id="scene-fx" aria-hidden="true"></div>
+              <div class="scene-empty" id="scene-empty">作業員が来るのを待っています…</div>
+            </div>
+            <div class="zoom-controls" role="group" aria-label="背景の拡大・縮小">
+              <button type="button" id="zoom-in" aria-label="拡大">＋</button>
+              <button type="button" id="zoom-out" aria-label="縮小">－</button>
+              <button type="button" id="zoom-office" aria-label="オフィスを表示">オフィス</button>
+              <button type="button" id="zoom-reset" aria-label="街の全体を表示">全体</button>
+            </div>
+          </div>
+          <div class="scene-bottom"><span>☼ ちいさな世界の、大きなお仕事。</span><span>タコを選ぶと詳細を表示</span></div>
+        </section>
+        <aside class="right-panels" id="crew">
+          <section class="panel crew-panel"><div class="panel-head"><div><span class="eyebrow">TEAM STATUS</span><h2>工房の仲間たち</h2></div><span class="pill" id="crew-total">0 / 6</span></div><div id="worker-list" class="worker-list"></div></section>
+          <section class="panel manager-panel"><div class="manager-title">✳　工場長のひとこと</div><p id="manager-quote">「私は工場長ではありません」</p><button type="button" id="next-quote">別のひとことを見る ↻</button></section>
+        </aside>
+      </div>
+      <div class="summary-strip" aria-label="工房の統計"><div><span>◌ 在室中</span><strong id="summary-present">0<small> 匹</small></strong></div><div><span>↳ 入室</span><strong id="summary-enter">0<small> 件</small></strong></div><div><span>↰ 退室</span><strong id="summary-leave">0<small> 件</small></strong></div><div><span>✳ 工場長の自己認識</span><strong>0<small> %</small></strong></div></div>
+      <div class="bottom-grid"><section class="panel journal" id="journal"><div class="panel-head"><div><span class="eyebrow">LIVE JOURNAL</span><h2>業務日誌</h2></div><span class="pill">最新50件</span></div><ol id="activity-log" aria-live="polite" aria-relevant="additions"></ol></section>
+      <section class="panel inspector"><div class="panel-head"><div><span class="eyebrow">CHARACTER INSPECTOR</span><h2>作業員の詳細</h2></div></div><div id="worker-detail" class="worker-detail"><p>工房のタコか、右側の仲間たちを選んでね。</p></div><div class="mock-controls" id="mock-controls" hidden><button type="button" id="mock-enter">＋ デモ入室</button><button type="button" id="mock-leave">− デモ退室</button><button type="button" id="mock-light">◐ 照明を切り替え</button><button type="button" id="mock-work">⚒ 全員に仕事モーション</button><button type="button" id="mock-react">! 全員にリアクション</button><button type="button" id="mock-walk">⇄ 歩いて入退室を試す</button></div></section></div>
+    </main>
+    <footer class="footer">CLAUDE FACTORY · A VERY SMALL WORKPLACE WITH VERY BIG IDEAS</footer>
+  </div>
+</div>
+<!-- ここまで -->
 
   <!-- テストの結果（app_test.js が書く。Python 側はここを読む） -->
   <pre id="test-result">未実行</pre>
