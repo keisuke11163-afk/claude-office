@@ -20,6 +20,8 @@ Claude Code のフック ──POST /events──▶ server.py ──GET /stream
 
 - `static/index.html`：画面の骨組み（見出し・表・リストなどの置き場所）。`/style.css` と `/app.js` を読み込むだけで、中に JS や CSS は書かない
 - `static/app.js`：`/stream` に接続し、届いたイベントで入室中の一覧と履歴を書き換える（画面の動きはすべてここ）
+  - 照明（昼・夕・夜）とタコのモーションも app.js が受け持つ（`docs/ui_contract.md` の「6. 照明レイヤー・モーションのしくみ」）。選んだ照明はブラウザの `localStorage` に保存するだけで、サーバーには送らない
+  - SSE には作業の進捗や成功・失敗は含まれない。タコの仕事モーションは役割を表す演出で、進捗や成否を表すものではない
 - `static/style.css`：見た目（色・余白・表の線など）
 
 ### 画面から使えるファイル（URL 一覧）
@@ -43,6 +45,7 @@ Claude Code のフック ──POST /events──▶ server.py ──GET /stream
 
 1. **JS は `static/app.js`、CSS は `static/style.css` に書く。`index.html` に `<script>…</script>` や `<style>…</style>`、`style="…"`、`onclick="…"` を直接書かない**
    CSP（上のヘッダー）により、HTML に直接書いた JS や CSS はブラウザが実行しません。
+   JS から位置などを渡すときは `element.style.setProperty("--名前", 値)`（CSSOM）で CSS 変数を入れます（CSP で止められない）。
 2. **`innerHTML` を使わない**
    受け取ったデータは必ず `textContent` で入れ、要素は `document.createElement` で作ります。
    `agent_type` などは外から届く値なので、`innerHTML` に入れると仕込まれたスクリプトが動きます（XSS）。

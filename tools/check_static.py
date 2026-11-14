@@ -26,7 +26,9 @@ DEFAULT_SERVER_FILE = PROJECT_ROOT / "server.py"
 REQUIRED_ELEMENT_IDS = (
     "connection-status",
     "scene",
+    "scene-fx",
     "scene-empty",
+    "light-toggle",
     "worker-list",
     "worker-detail",
     "activity-log",
@@ -40,6 +42,10 @@ REQUIRED_ELEMENT_IDS = (
     "mock-controls",
     "mock-enter",
     "mock-leave",
+    "mock-light",
+    "mock-work",
+    "mock-react",
+    "mock-walk",
 )
 
 # index.html に必ず必要な作業場所（<div class="slot" data-role="…">）

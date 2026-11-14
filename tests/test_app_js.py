@@ -23,10 +23,10 @@ BROWSER_CANDIDATE_PATHS = (
 
 # ブラウザの実行を待つ上限（秒）
 BROWSER_TIMEOUT_SECONDS = 60
-# 仮想時間（ミリ秒）。テスト内の待ち（700ms × 6回ほど）が進むように十分な時間を与える
-VIRTUAL_TIME_BUDGET_MS = 8000
+# 仮想時間（ミリ秒）。テスト内の待ち（700ms × 7回 + 歩きの見た目を待つ 1.9 秒 × 2回ほど）が進むように十分な時間を与える
+VIRTUAL_TIME_BUDGET_MS = 15000
 # app_test.js に登録しているテストの数（増減したらここも直す）
-EXPECTED_TEST_COUNT = 16
+EXPECTED_TEST_COUNT = 33
 
 
 def find_browser_paths():
